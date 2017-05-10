@@ -1,4 +1,4 @@
-package kaist.restaurantownerapp;
+package kaist.restaurantownerapp.views;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -10,11 +10,15 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ViewFlipper;
+
+import kaist.restaurantownerapp.R;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    private ViewFlipper vf;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +44,10 @@ public class MainActivity extends AppCompatActivity
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        navigationView.setCheckedItem(R.id.nav_orders);
+
+        vf = (ViewFlipper)findViewById(R.id.vf);
+        vf.setDisplayedChild(0);
     }
 
     @Override
@@ -52,10 +60,10 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
+    /*@Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.main, menu);
+        //getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
@@ -72,7 +80,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         return super.onOptionsItemSelected(item);
-    }
+    }*/
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -80,19 +88,15 @@ public class MainActivity extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        /*if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        }*/
+        if (id == R.id.nav_orders) {
+            vf.setDisplayedChild(0);
+        } else if (id == R.id.nav_menu) {
+            vf.setDisplayedChild(1);
+        } else if (id == R.id.nav_tables) {
+            vf.setDisplayedChild(2);
+        } else if (id == R.id.nav_settings) {
+            vf.setDisplayedChild(3);
+        }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);

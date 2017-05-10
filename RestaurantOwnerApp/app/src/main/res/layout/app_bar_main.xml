@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="kaist.restaurantownerapp.MainActivity">
+    tools:context="kaist.restaurantownerapp.views.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -15,12 +15,10 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/colorPrimary"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
 
     </android.support.design.widget.AppBarLayout>
-
-    <include layout="@layout/content_main"/>
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab"
@@ -29,7 +27,18 @@
         android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/fab_margin"
         android:tint="@android:color/white"
-        android:backgroundTint="#f05545"
+        android:backgroundTint="@color/colorAccent"
         app:srcCompat="@android:drawable/ic_input_add"/>
 
+    <ViewFlipper xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/vf"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content" >
+
+        <include android:id="@+id/content_order" layout="@layout/content_order" />
+        <include android:id="@+id/content_menu" layout="@layout/content_menu" />
+        <include android:id="@+id/content_table" layout="@layout/content_table" />
+        <include android:id="@+id/content_settings" layout="@layout/content_settings" />
+
+    </ViewFlipper>
 </android.support.design.widget.CoordinatorLayout>
