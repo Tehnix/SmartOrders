@@ -1,7 +1,7 @@
 package kaist.customerapplication.data.restaurantinfo;
 
 
-class ContactInfo {
+public class ContactInfo {
     public String phone;
     public String email;
 }

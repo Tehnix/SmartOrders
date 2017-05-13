@@ -1,9 +1,9 @@
 package kaist.customerapplication.data.restaurantinfo;
 
 
-class MenuItem {
-    public String id;
+public class MenuItem {
+    public int id;
     public String name;
-    public int price;
+    public double price;
     public String description;
 }

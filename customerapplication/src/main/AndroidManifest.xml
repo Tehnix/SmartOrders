@@ -19,7 +19,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="kaist.customerapplication.views.MenuActivity"></activity>
+        <activity android:name="kaist.customerapplication.views.MenuActivity"
+            android:parentActivityName="kaist.customerapplication.views.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="kaist.customerapplication.views.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

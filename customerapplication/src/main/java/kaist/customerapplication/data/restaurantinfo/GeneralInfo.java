@@ -1,7 +1,7 @@
 package kaist.customerapplication.data.restaurantinfo;
 
 
-class GeneralInfo {
+public class GeneralInfo {
     public String name;
     public String location;
     public String description;
