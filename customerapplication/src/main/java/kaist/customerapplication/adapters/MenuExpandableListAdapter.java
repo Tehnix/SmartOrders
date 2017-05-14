@@ -13,9 +13,9 @@ import com.kaist.antr.kaist.R;
 import java.util.HashMap;
 import java.util.List;
 
-import kaist.customerapplication.data.restaurantinfo.Menu;
-import kaist.customerapplication.data.restaurantinfo.MenuEntry;
-import kaist.customerapplication.data.restaurantinfo.MenuItem;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Menu;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuEntry;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuItem;
 
 /**
  * Adapted from www.androidhive.info

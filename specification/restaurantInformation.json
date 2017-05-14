@@ -9,33 +9,82 @@
     }
   },
   "menu": {
-    "food": {
-      "Chicken": [
-        {"id": 12, "name": "Tender Crispy Chicken", "price": 9000.00, "description": "Very tender chicken"},
-        {"id": 13, "name": "Hot Chicken", "price": 12000.00, "description": "Careful! Quite hot chicken"}
-      ],
-      "Beef": [
-        {"id": 14, "name": "Steak", "price": 15000.00, "description": "A nice well seasoned steak"}
-      ]
-    },
-    "beverage": {
-      "Soft-drinks": [
-        {"id": 15, "name": "Coca Cola", "price": 500.00, "description": ""},
-        {"id": 16, "name": "Pepsi", "price": 600.00, "description": ""}
-      ],
-      "Alcholic": [
-        {"id": 17, "name": "Cass Beer", "price": 3000.00, "description": "Good for stamina!"},
-        {"id": 18, "name": "Soju", "price": 3000.00, "description": "Very refreshing!"}
-      ]
-    },
-    "additional": {
-      "Side-dishes": [
-        {"id": 19, "name": "Pommes Frites", "price": 4500.00, "description": "Crispy oven made fries"}
-      ],
-      "Condiments": [
-        {"id": 17, "name": "Ketchup", "price": 100.00, "description": ""},
-        {"id": 17, "name": "Ketchup", "price": 100.00, "description": ""}
-      ]
-    }
+    "menuCategories": [
+      {
+        "name": "food",
+        "menuItems": [
+          {
+            "id": 12,
+            "name": "Tender Crispy Chicken",
+            "price": 9000.00,
+            "description": "Very tender chicken"
+          },
+          {
+            "id": 13,
+            "name": "Hot Chicken",
+            "price": 12000.00,
+            "description": "Careful! Quite hot chicken"
+          },
+          {
+            "id": 14,
+            "name": "Steak",
+            "price": 15000.00,
+            "description": "A nice well seasoned steak"
+          }
+        ]
+      },
+      {
+        "name": "beverage",
+        "menuItems": [
+          {
+            "id": 15,
+            "name": "Coca Cola",
+            "price": 500.00,
+            "description": ""
+          },
+          {
+            "id": 16,
+            "name": "Pepsi",
+            "price": 600.00,
+            "description": ""
+          },
+          {
+            "id": 17,
+            "name": "Cass Beer",
+            "price": 3000.00,
+            "description": "Good for stamina!"
+          },
+          {
+            "id": 18,
+            "name": "Soju",
+            "price": 3000.00,
+            "description": "Very refreshing!"
+          }
+        ]
+      },
+      {
+        "name": "Side-dishes",
+        "menuItems": [
+          {
+            "id": 19,
+            "name": "Pommes Frites",
+            "price": 4500.00,
+            "description": "Crispy oven made fries"
+          },
+          {
+            "id": 17,
+            "name": "Ketchup",
+            "price": 100.00,
+            "description": ""
+          },
+          {
+            "id": 17,
+            "name": "Mustard",
+            "price": 100.00,
+            "description": ""
+          }
+        ]
+      }
+    ]
   }
 }

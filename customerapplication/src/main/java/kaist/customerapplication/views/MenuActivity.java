@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import kaist.customerapplication.RestaurantOwnerApplicationWrapper;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.RestaurantOwnerApplicationWrapper;
 import kaist.customerapplication.adapters.MenuExpandableListAdapter;
-import kaist.customerapplication.data.restaurantinfo.Menu;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Menu;
 
 
 public class MenuActivity extends AppCompatActivity {

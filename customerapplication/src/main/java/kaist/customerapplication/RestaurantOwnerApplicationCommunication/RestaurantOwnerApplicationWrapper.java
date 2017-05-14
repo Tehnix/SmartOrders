@@ -1,15 +1,15 @@
-package kaist.customerapplication;
+package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 
 
 import java.util.ArrayList;
 import java.util.List;
 
-import kaist.customerapplication.data.restaurantinfo.ContactInfo;
-import kaist.customerapplication.data.restaurantinfo.GeneralInfo;
-import kaist.customerapplication.data.restaurantinfo.Menu;
-import kaist.customerapplication.data.restaurantinfo.MenuEntry;
-import kaist.customerapplication.data.restaurantinfo.MenuItem;
-import kaist.customerapplication.data.restaurantinfo.RestaurantInfo;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.ContactInfo;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.GeneralInfo;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Menu;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuEntry;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuItem;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
 
 public class RestaurantOwnerApplicationWrapper {
     public RestaurantInfo getRestaurantInfo(){
@@ -37,7 +37,7 @@ public class RestaurantOwnerApplicationWrapper {
     private ContactInfo createContactInfo() {
         ContactInfo contact = new ContactInfo();
         contact.phone = "010-9999-9999";
-        contact.email = "chicken@example.com";
+        contact.mail = "chicken@example.com";
         return contact;
     }
 

@@ -1,4 +1,4 @@
-package kaist.customerapplication.data.restaurantinfo;
+package kaist.customerapplication.RestaurantOwnerApplicationCommunication.data;
 
 
 public class MenuItem {
