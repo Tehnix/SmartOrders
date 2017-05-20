@@ -7,16 +7,15 @@ import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Re
 
 class RestaurantInfoJsonSerializer {
 
-    public static RestaurantInfo deserializeToRestaurantInfo(String json){
+    public static RestaurantInfo deserialize(String json){
         Gson gson = new Gson();
         RestaurantInfo resInfo = gson.fromJson(json,RestaurantInfo.class);
         return resInfo;
     }
 
-    public static String serializeToJson(RestaurantInfo info){
+    public static String serialize(RestaurantInfo info){
         Gson gson = new Gson();
         String json = gson.toJson(info);
-
         return json;
     }
 }

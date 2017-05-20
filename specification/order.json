@@ -1,7 +1,23 @@
 {
-  "table": 25,
-  "order": [
-    {"id": 12, "quantity": 2},
-    {"id": 14, "quantity": 5},
+  "tableNumber": 25,
+  "orderItems": [
+    {
+      "menuItem": {
+        "id": 12,
+        "name": "Tender Crispy Chicken",
+        "price": 9000.00,
+        "description": "Very tender chicken"
+      },
+      "quantity": 2
+    },
+    {
+      "menuItem": {
+        "id": 13,
+        "name": "Hot Chicken",
+        "price": 12000.00,
+        "description": "Careful! Quite hot chicken"
+      },
+      "quantity": 1
+    }
   ]
 }

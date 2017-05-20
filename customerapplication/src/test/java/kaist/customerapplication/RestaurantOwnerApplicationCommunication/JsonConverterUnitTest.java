@@ -10,6 +10,7 @@ import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Ge
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Menu;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuEntry;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuItem;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
 
 import static org.junit.Assert.assertTrue;
@@ -20,7 +21,7 @@ public class JsonConverterUnitTest {
     public void canConvertMenu() throws Exception {
         Menu expectedMenu = generateExpectedMenuOutput();
 
-        Menu actualMenu = RestaurantInfoJsonSerializer.deserializeToRestaurantInfo(TestJsonData.EXAMPLE_JSON).menu;
+        Menu actualMenu = RestaurantInfoJsonSerializer.deserialize(TestJsonData.EXAMPLE_JSON_INFO).menu;
 
         for (MenuEntry category: expectedMenu.menuCategories) {
             int pos = expectedMenu.menuCategories.indexOf(category);
@@ -32,9 +33,17 @@ public class JsonConverterUnitTest {
 
     @Test
     public void canSerializeInfoToAndFromJson() throws Exception {
-        RestaurantInfo resInfo = RestaurantInfoJsonSerializer.deserializeToRestaurantInfo(TestJsonData.EXAMPLE_JSON);
-        String serializedjson = RestaurantInfoJsonSerializer.serializeToJson(resInfo);
-        assertTrue(serializedjson.equals(TestJsonData.EXAMPLE_JSON));
+        RestaurantInfo resInfo = RestaurantInfoJsonSerializer.deserialize(TestJsonData.EXAMPLE_JSON_INFO);
+        String serializedjson = RestaurantInfoJsonSerializer.serialize(resInfo);
+        assertTrue(serializedjson.equals(TestJsonData.EXAMPLE_JSON_INFO));
+
+    }
+
+    @Test
+    public void canSerializeOrderToAndFromJson() throws Exception {
+        Order order = OrderJsonSerializer.deserialize(TestJsonData.EXAMPLE_JSON_ORDER);
+        String serializedjson = OrderJsonSerializer.serialize(order);
+        assertTrue(serializedjson.equals(TestJsonData.EXAMPLE_JSON_ORDER));
 
     }
 
@@ -117,8 +126,11 @@ public class JsonConverterUnitTest {
         return bevs;
     }
 
+
+
     private static class TestJsonData{
-        public final static String EXAMPLE_JSON = "{\"info\":{\"name\":\"Gosomi Chicken\",\"location\":\"21st Cool Street, Daejeon\",\"description\":\"Awesome fried chicken!\",\"contact\":{\"phone\":\"010-9999-9999\",\"mail\":\"chicken@example.com\"}},\"menu\":{\"menuCategories\":[{\"name\":\"food\",\"menuItems\":[{\"id\":12,\"name\":\"Tender Crispy Chicken\",\"price\":9000.0,\"description\":\"Very tender chicken\"},{\"id\":13,\"name\":\"Hot Chicken\",\"price\":12000.0,\"description\":\"Careful! Quite hot chicken\"},{\"id\":14,\"name\":\"Steak\",\"price\":15000.0,\"description\":\"A nice well seasoned steak\"}]},{\"name\":\"beverage\",\"menuItems\":[{\"id\":15,\"name\":\"Coca Cola\",\"price\":500.0,\"description\":\"\"},{\"id\":16,\"name\":\"Pepsi\",\"price\":600.0,\"description\":\"\"},{\"id\":17,\"name\":\"Cass Beer\",\"price\":3000.0,\"description\":\"Good for stamina!\"},{\"id\":18,\"name\":\"Soju\",\"price\":3000.0,\"description\":\"Very refreshing!\"}]},{\"name\":\"Side-dishes\",\"menuItems\":[{\"id\":19,\"name\":\"Pommes Frites\",\"price\":4500.0,\"description\":\"Crispy oven made fries\"},{\"id\":17,\"name\":\"Ketchup\",\"price\":100.0,\"description\":\"\"},{\"id\":17,\"name\":\"Mustard\",\"price\":100.0,\"description\":\"\"}]}]}}";
+        public final static String EXAMPLE_JSON_INFO = "{\"info\":{\"name\":\"Gosomi Chicken\",\"location\":\"21st Cool Street, Daejeon\",\"description\":\"Awesome fried chicken!\",\"contact\":{\"phone\":\"010-9999-9999\",\"mail\":\"chicken@example.com\"}},\"menu\":{\"menuCategories\":[{\"name\":\"food\",\"menuItems\":[{\"id\":12,\"name\":\"Tender Crispy Chicken\",\"price\":9000.0,\"description\":\"Very tender chicken\"},{\"id\":13,\"name\":\"Hot Chicken\",\"price\":12000.0,\"description\":\"Careful! Quite hot chicken\"},{\"id\":14,\"name\":\"Steak\",\"price\":15000.0,\"description\":\"A nice well seasoned steak\"}]},{\"name\":\"beverage\",\"menuItems\":[{\"id\":15,\"name\":\"Coca Cola\",\"price\":500.0,\"description\":\"\"},{\"id\":16,\"name\":\"Pepsi\",\"price\":600.0,\"description\":\"\"},{\"id\":17,\"name\":\"Cass Beer\",\"price\":3000.0,\"description\":\"Good for stamina!\"},{\"id\":18,\"name\":\"Soju\",\"price\":3000.0,\"description\":\"Very refreshing!\"}]},{\"name\":\"Side-dishes\",\"menuItems\":[{\"id\":19,\"name\":\"Pommes Frites\",\"price\":4500.0,\"description\":\"Crispy oven made fries\"},{\"id\":17,\"name\":\"Ketchup\",\"price\":100.0,\"description\":\"\"},{\"id\":17,\"name\":\"Mustard\",\"price\":100.0,\"description\":\"\"}]}]}}";
+        public final static String EXAMPLE_JSON_ORDER = "{\"tableNumber\":25,\"orderItems\":[{\"menuItem\":{\"id\":12,\"name\":\"Tender Crispy Chicken\",\"price\":9000.0,\"description\":\"Very tender chicken\"},\"quantity\":2},{\"menuItem\":{\"id\":13,\"name\":\"Hot Chicken\",\"price\":12000.0,\"description\":\"Careful! Quite hot chicken\"},\"quantity\":1}]}";
     }
 
 
