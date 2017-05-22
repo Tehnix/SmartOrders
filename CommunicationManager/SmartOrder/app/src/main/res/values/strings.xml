@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">SmartOrder</string>
+    <string name="title_home">Home</string>
+    <string name="title_nfc">NFC</string>
+    <string name="title_ble">BLE</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="button_write_data">Write to NFC Tag</string>
+    <string name="txt_nfc_default_data">No Data Yet!</string>
+    <string name="button_scan_ble">Scan For BLE Devices!</string>
+    <string name="txt_ble_default_data">No Data Yet!</string>
+    <string name="txt_home_info">Press the NFC button to try NFC actions, and press the BLE button to try BLE actions.</string>
+</resources>
