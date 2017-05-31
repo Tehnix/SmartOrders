@@ -12,7 +12,7 @@ public class RestaurantOwnerApplicationWrapper {
     }
 
     public void orderFromMenu(Order order){
-
+        //TODO: implement
     }
 
     private RestaurantInfo createRestaurantInfoDummy() {

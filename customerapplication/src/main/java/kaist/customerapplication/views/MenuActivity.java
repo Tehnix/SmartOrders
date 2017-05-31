@@ -2,8 +2,11 @@ package kaist.customerapplication.views;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.ListView;
+import android.widget.TextView;
 
 import com.kaist.antr.kaist.R;
 
@@ -12,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.RestaurantOwnerApplicationWrapper;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.MenuItem;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.OrderItem;
 import kaist.customerapplication.adapters.MenuExpandableListAdapter;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Menu;
 
@@ -26,12 +32,15 @@ public class MenuActivity extends AppCompatActivity {
     List<String> listDataHeaderLISTCLASS;
     HashMap<String, List<String>> listDataChildLISTCLASS;
 
+    Order order;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
 
         restaurantOwnerApplicationWrapper = new RestaurantOwnerApplicationWrapper();
+        order = new Order();
         //menuListView = (ExpandableListView) findViewById(R.id.menuList);
         //List<MenuItem> menuItemList = restaurantOwnerApplicationWrapper.getRestaurantInfo().menu.menuCategories.get(0).menuItems;
 
@@ -43,6 +52,33 @@ public class MenuActivity extends AppCompatActivity {
         //prepareListData();
         listAdapter = new MenuExpandableListAdapter(this, menu);
         menuListView.setAdapter(listAdapter);
+    }
+
+    public void addItem(View view) {
+        int childPosition=(Integer)view.getTag(R.string.childPosition);
+        int groupPosition=(Integer)view.getTag(R.string.groupPosition);
+        MenuItem menuItem = (MenuItem) listAdapter.getChild(groupPosition,childPosition);
+
+        int itemQuantity = order.addMenuItem(menuItem);
+
+        TextView amountText = (TextView) view.getTag(R.string.amountTextView);
+        amountText.setText(Integer.toString(itemQuantity));
+
+    }
+
+    public void removeItem(View view) {
+        int childPosition=(Integer)view.getTag(R.string.childPosition);
+        int groupPosition=(Integer)view.getTag(R.string.groupPosition);
+        MenuItem menuItem = (MenuItem) listAdapter.getChild(groupPosition,childPosition);
+
+        int itemQuantity = order.removeMenuItem(menuItem);
+
+        TextView amountText = (TextView) view.getTag(R.string.amountTextView);
+        amountText.setText(Integer.toString(itemQuantity));
+    }
+
+    public void placeOrder(View view) {
+        //TODO: implement
     }
 
     private void prepareListData() {

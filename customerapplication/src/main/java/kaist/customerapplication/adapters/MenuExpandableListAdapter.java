@@ -5,7 +5,9 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.kaist.antr.kaist.R;
@@ -77,6 +79,19 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
         txtNameChild.setText(childName);
         txtDescChild.setText(childDescription);
         txtPriceChild.setText(childPrice);
+
+        TextView amountTextView = (TextView) convertView.findViewById(R.id.amountText);
+
+        ImageButton addBtn = (ImageButton) convertView.findViewById(R.id.btnAdd);
+        addBtn.setTag(R.string.childPosition,childPosition);
+        addBtn.setTag(R.string.groupPosition,groupPosition);
+        addBtn.setTag(R.string.amountTextView,amountTextView);
+
+        ImageButton removeBtn = (ImageButton) convertView.findViewById(R.id.btnRemove);
+        removeBtn.setTag(R.string.childPosition,childPosition);
+        removeBtn.setTag(R.string.groupPosition,groupPosition);
+        removeBtn.setTag(R.string.amountTextView,amountTextView);
+
         return convertView;
     }
 
@@ -129,4 +144,6 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
     public boolean isChildSelectable(int groupPosition, int childPosition) {
         return true;
     }
+
+
 }
