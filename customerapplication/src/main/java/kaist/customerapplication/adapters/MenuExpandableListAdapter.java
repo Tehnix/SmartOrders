@@ -5,7 +5,6 @@ import android.graphics.Typeface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -73,7 +72,7 @@ public class MenuExpandableListAdapter extends BaseExpandableListAdapter {
         }
 
         TextView txtNameChild = (TextView) convertView.findViewById(R.id.nameText);
-        TextView txtDescChild = (TextView) convertView.findViewById(R.id.descriptionText);
+        TextView txtDescChild = (TextView) convertView.findViewById(R.id.textView);
         TextView txtPriceChild = (TextView) convertView.findViewById(R.id.priceText);
 
         txtNameChild.setText(childName);

@@ -37,7 +37,13 @@
                 android:value="kaist.customerapplication.views.MainActivity" />
         </activity>
         <activity android:name="kaist.customerapplication.views.ScanTagActivity"
-            android:parentActivityName="kaist.customerapplication.views.MainActivity"/>
+            android:parentActivityName="kaist.customerapplication.views.MainActivity">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/smartorder" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
