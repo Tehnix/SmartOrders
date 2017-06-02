@@ -10,6 +10,7 @@ import android.widget.Toast;
 
 import com.kaist.antr.kaist.R;
 
+import kaist.customerapplication.CommonObjectManager;
 import kaist.customerapplication.communicationmanager.CommunicationManager;
 import kaist.customerapplication.communicationmanager.Either;
 
@@ -20,6 +21,7 @@ public class ScanTagActivity extends AppCompatActivity {
     private TextView uiNfcDataText;
     final static String SCANNING_TEXT = "Scanning...";
     private String mNfcMessage = "";
+    boolean scanning;
 
 
     CommunicationManager mCommunicationManager;
@@ -35,14 +37,14 @@ public class ScanTagActivity extends AppCompatActivity {
         uiNfcDataText.setText(mNfcMessage);
 
         mCommunicationManager = new CommunicationManager(this);
+        scanning = false;
 
 
     }
 
     public void scanForNFC(View view){
         statusText.setText(SCANNING_TEXT);
-        statusText.setText("NFC tag found. Connecting to restaurant...");
-        goBackToMainActivity();
+        scanning = true;
     }
 
     /*
@@ -52,17 +54,33 @@ public class ScanTagActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        if(scanning){
+            Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent);
+            if (nfcMessage.isRight()) {
+                mNfcMessage = nfcMessage.right();
+                Toast.makeText(this, "Restaurant chip detected", Toast.LENGTH_SHORT).show();
 
-        Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent);
-        if (nfcMessage.isRight()) {
-            mNfcMessage = nfcMessage.right();
-            Toast.makeText(this, "Successfully connected to restaurant!", Toast.LENGTH_SHORT).show();
-            goBackToMainActivity();
-        } else {
-            mNfcMessage = nfcMessage.left();
+                String[] payload = nfcMessage.right().split(";;");
+                String tableNumber = payload[0];
+
+                CommonObjectManager.restaurantOwnerApplicationWrapper.setNewConnectionToRestaurant(mCommunicationManager, tableNumber);
+                goBackToMainActivity();
+            } else {
+                mNfcMessage = nfcMessage.left();
+            }
+            //statusText.setText(mNfcMessage);
         }
-        uiNfcDataText.setText(mNfcMessage);
     }
+
+    /*public void onWriteButtonClick(View v) {
+        Either<String, String> writeResult = mCommunicationManager.writeNfcTag("1234");
+        if (writeResult.isRight()) {
+            Toast.makeText(this, "NFC Write Result", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Error in NFC Write Result", Toast.LENGTH_SHORT).show();
+        }
+    }*/
+
 
     /*
      * @NFC:
