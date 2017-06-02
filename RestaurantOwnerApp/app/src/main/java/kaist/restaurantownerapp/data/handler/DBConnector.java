@@ -10,15 +10,18 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 import android.util.Log;
-import java.util.ArrayList;
+
 import java.util.List;
 
 import kaist.restaurantownerapp.data.ContactInfo;
 import kaist.restaurantownerapp.data.GeneralInfo;
+import kaist.restaurantownerapp.data.Menu;
+import kaist.restaurantownerapp.data.MenuEntry;
+import kaist.restaurantownerapp.data.MenuItem;
 import kaist.restaurantownerapp.data.Table;
 
 public class DBConnector extends SQLiteOpenHelper{
-    private static final String DATABASE_NAME = "SmartOrders.db";
+    private static final String DATABASE_NAME = "SmartOrder.db";
 
     // Tables Table
     private static final String TABLES_TABLE_NAME = "tables";
@@ -37,12 +40,12 @@ public class DBConnector extends SQLiteOpenHelper{
     private static final String RESTAURANT_COLUMN_EMAIL = "email";
 
     // Menu Table
-    private static final String MENU_TABLE_NAME = "menu";
+    private static final String MENU_TABLE_NAME = "menuitem";
+    private static final String MENU_COLUMN_ID = "id";
     private static final String MENU_COLUMN_NAME = "name";
     private static final String MENU_COLUMN_DESCRIPTION = "description";
     private static final String MENU_COLUMN_PRICE = "price";
-    private static final String MENU_COLUMN_CATEGORIE = "categorie";
-    private static final String MENU_COLUMN_SUBCATEGORIE = "subcategorie";
+    private static final String MENU_COLUMN_CATEGORY = "category";
 
     // Orders Table
     private static final String ORDERS_TABLE_NAME = "orders";
@@ -55,7 +58,7 @@ public class DBConnector extends SQLiteOpenHelper{
 
     public DBConnector(Context context) {
 
-        super(context, DATABASE_NAME , null, 9);
+        super(context, DATABASE_NAME , null, 1);
         Log.d("dbConnector", "constructor");
     }
 
@@ -74,8 +77,8 @@ public class DBConnector extends SQLiteOpenHelper{
             );
             generateDefaultRestaurantInfo(db);
             db.execSQL(
-                    "CREATE TABLE IF NOT EXISTS menu " +
-                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, description TEXT NOT NULL, categorie TEXT NOT NULL, subcategorie TEXT NOT NULL, price INTEGER NOT NULL)"
+                    "CREATE TABLE IF NOT EXISTS menuitem " +
+                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, category TEXT NOT NULL,  description TEXT, price INTEGER NOT NULL)"
             );
             db.execSQL(
                     "CREATE TABLE IF NOT EXISTS orders " +
@@ -222,133 +225,92 @@ public class DBConnector extends SQLiteOpenHelper{
                 new String[] { String.valueOf(0)});
     }
 
-
-
-    /*public boolean insertRestaurant(String name, String description, String location, String phone, String email) {
+    // Adding new Menu Item
+    public boolean addMenuItem(MenuItem item) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues contentValues = new ContentValues();
-        contentValues.put(RESTAURANT_COLUMN_NAME, name);
-        contentValues.put(RESTAURANT_COLUMN_DESCRIPTION, description);
-        contentValues.put(RESTAURANT_COLUMN_LOCATION, location);
-        contentValues.put(RESTAURANT_COLUMN_PHONE, phone);
-        contentValues.put(RESTAURANT_COLUMN_EMAIL, email);
-        db.insert(RESTAURANT_TABLE_NAME, null, contentValues);
-        return true;
-    }
-
-    public boolean insertMenu(String name, String description, String categorie, String subcategorie, int price) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(MENU_COLUMN_NAME, name);
-        contentValues.put(MENU_COLUMN_DESCRIPTION, description);
-        contentValues.put(MENU_COLUMN_CATEGORIE, categorie);
-        contentValues.put(MENU_COLUMN_SUBCATEGORIE, subcategorie);
-        contentValues.put(MENU_COLUMN_PRICE, price);
+        contentValues.put(MENU_COLUMN_NAME, item.getName());
+        contentValues.put(MENU_COLUMN_CATEGORY, item.getCategory());
+        contentValues.put(MENU_COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(MENU_COLUMN_PRICE, item.getPrice());
         db.insert(MENU_TABLE_NAME, null, contentValues);
         return true;
     }
 
-    public boolean insertOrder(int tableid, int menuid, int number) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(ORDERS_COLUMN_TABLEID, tableid);
-        contentValues.put(ORDERS_COLUMN_MENUID, menuid);
-        contentValues.put(ORDERS_COLUMN_NUMBER, number);
-        db.insert(ORDERS_TABLE_NAME, null, contentValues);
-        return true;
-    }
-
-    public Cursor getDataOfTables(int id) {
+    // Getting one Menu Item
+    public MenuItem getMenuItem(int id){
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from tables where id="+id+"", null );
-        return res;
+        Cursor cursor = db.query(MENU_TABLE_NAME, new String[] {
+                        MENU_COLUMN_ID, MENU_COLUMN_NAME, MENU_COLUMN_CATEGORY, MENU_COLUMN_DESCRIPTION}, MENU_COLUMN_PRICE + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        MenuItem item = new MenuItem(Integer.parseInt(cursor.getString(0)),
+                cursor.getString(1), cursor.getString(2),cursor.getString(3),  Double.parseDouble(cursor.getString(4)));
+        return item;
     }
 
-    public Cursor getDataOfRestaurant(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from restaurant where id="+id+"", null );
-        return res;
-    }
+    // Getting Menu
+    public Menu getMenu() {
 
-    public Cursor getDataOfMenu(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from menu where id="+id+"", null );
-        return res;
-    }
+        List<MenuItem> drinksList = new ArrayList<>();
+        List<MenuItem> mainDishList = new ArrayList<>();
+        List<MenuItem> dessertList = new ArrayList<>();
+        List<MenuItem> appetizerList = new ArrayList<>();
+        List<MenuEntry> menu = new ArrayList<>();
+        // Select All Query
+        String selectQuery = "SELECT  * FROM " + MENU_TABLE_NAME + " ORDER BY " + MENU_COLUMN_CATEGORY;
 
-    public Cursor getDataOfOrders(int id) {
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from orders where id="+id+"", null );
-        return res;
-    }
-
-    public Integer deleteTableTables (Integer id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(TABLES_TABLE_NAME,
-                "id = ? ",
-                new String[] { Integer.toString(id) });
-    }
+        Cursor cursor = db.rawQuery(selectQuery, null);
 
-    public Integer deleteTableRestaurant (Integer id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(RESTAURANT_TABLE_NAME,
-                "id = ? ",
-                new String[] { Integer.toString(id) });
-    }
-
-    public Integer deleteTableMenu (Integer id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(MENU_TABLE_NAME,
-                "id = ? ",
-                new String[] { Integer.toString(id) });
-    }
-
-    public Integer deleteTableOrders (Integer id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        return db.delete(ORDERS_TABLE_NAME,
-                "id = ? ",
-                new String[] { Integer.toString(id) });
-    }
-
-    public ArrayList<String> getTables() {
-        ArrayList<String> array_list = new ArrayList<String>();
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from tables", null );
-        res.moveToFirst();
-
-        while(res.isAfterLast() == false){
-            array_list.add(res.getString(res.getColumnIndex(TABLES_TABLE_NAME)));
-            res.moveToNext();
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                MenuItem item = new MenuItem(Integer.parseInt(cursor.getString(0)),
+                        cursor.getString(1), cursor.getString(2), cursor.getString(3), Double.parseDouble(cursor.getString(4)));
+                // Adding Menu Item to list
+                String test = item.getCategory();
+                if (item.getCategory().equals("main dishes")) {
+                    mainDishList.add(item);
+                } else if(item.getCategory().equals("appetizer")){
+                    appetizerList.add(item);
+                } else if(item.getCategory().equals("drink")){
+                    drinksList.add(item);
+                }else if(item.getCategory().equals("dessert")) {
+                    dessertList.add(item);
+                }
+            } while (cursor.moveToNext());
         }
-        return array_list;
+
+        menu.add(new MenuEntry("main dishes", mainDishList));
+        menu.add(new MenuEntry("appetizer", appetizerList));
+        menu.add(new MenuEntry("drinks", drinksList));
+        menu.add(new MenuEntry("dessert", dessertList));
+        return new Menu(menu);
     }
 
-    public ArrayList<String> getMenu() {
-        ArrayList<String> array_list = new ArrayList<String>();
+    // Updating single menu item
+    public int updateMenuItem(MenuItem item) {
+        SQLiteDatabase db = this.getWritableDatabase();
 
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from menu", null );
-        res.moveToFirst();
+        ContentValues values = new ContentValues();
+        values.put(MENU_COLUMN_NAME, item.getName());
+        values.put(MENU_COLUMN_CATEGORY, item.getCategory());
+        values.put(MENU_COLUMN_DESCRIPTION, item.getDescription());
+        values.put(MENU_COLUMN_PRICE, item.getPrice());
 
-        while(res.isAfterLast() == false){
-            array_list.add(res.getString(res.getColumnIndex(MENU_TABLE_NAME)));
-            res.moveToNext();
-        }
-        return array_list;
+        // updating row
+        return db.update(TABLES_TABLE_NAME, values, TABLES_COLUMN_NUMBER + " = ?",
+                new String[] {String.valueOf(item.getId())});
     }
 
-    public ArrayList<String> getOrders() {
-        ArrayList<String> array_list = new ArrayList<String>();
-
-        SQLiteDatabase db = this.getReadableDatabase();
-        Cursor res =  db.rawQuery( "select * from orders", null );
-        res.moveToFirst();
-
-        while(res.isAfterLast() == false){
-            array_list.add(res.getString(res.getColumnIndex(ORDERS_TABLE_NAME)));
-            res.moveToNext();
-        }
-        return array_list;
-    }*/
+    // Deleting single menu item
+    public void deleteMenuItem(MenuItem item) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(MENU_TABLE_NAME, MENU_COLUMN_ID + " = ?",
+                new String[] { String.valueOf(item.getId())});
+        db.close();
+    }
 }

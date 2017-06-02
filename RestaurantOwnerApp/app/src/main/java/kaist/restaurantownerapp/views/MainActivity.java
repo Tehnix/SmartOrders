@@ -15,10 +15,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 import android.content.Intent;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
+
+import java.util.List;
+import java.util.HashMap;
 
 import kaist.restaurantownerapp.R;
 import kaist.restaurantownerapp.data.*;
 import kaist.restaurantownerapp.data.handler.DBConnector;
+import kaist.restaurantownerapp.listviewhandler.MenuAdapter;
 import kaist.restaurantownerapp.listviewhandler.TableAdapter;
 
 public class MainActivity extends AppCompatActivity
@@ -32,11 +38,12 @@ public class MainActivity extends AppCompatActivity
 
     private Intent createNewTable;
     private Intent changeRestaurantInfo;
+    private Intent createNemMenuItem;
 
     private FloatingActionButton fab;
 
     public static DBConnector db;
-    public static TableAdapter tAdapter;
+    public static TableAdapter tableAdapter;
 
     // Content Settings Views
     public static TextView restaurantName;
@@ -46,6 +53,12 @@ public class MainActivity extends AppCompatActivity
     public static TextView restaurantPhone;
     public static TextView restaurantEMail;
     public static Button restaurantInfoChange;
+
+    private ExpandableListView menuListView;
+    public static MenuAdapter menuAdapter;
+    //ExpandableListView expListView;
+    private List<String> listDataHeaderLISTCLASS;
+    private HashMap<String, List<String>> listDataChildLISTCLASS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,7 +71,11 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
 
         createNewTable = new Intent(this, CreateTableActivity.class);
+        createNewTable.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         changeRestaurantInfo = new Intent(this, ChangeRestaurantInfoActivity.class);
+        changeRestaurantInfo.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        createNemMenuItem = new Intent(this, CreateMenuItemActivity.class);
+        createNemMenuItem.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -66,6 +83,10 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View view) {
                 if (currentContent == ContentState.TABLES){
                     startActivity(createNewTable);
+                }
+
+                if (currentContent == ContentState.MENU){
+                    startActivity(createNemMenuItem);
                 }
             }
         });
@@ -85,6 +106,7 @@ public class MainActivity extends AppCompatActivity
 
         initContentTable();
         initContentSettings();
+        initMenuList();
     }
 
     @Override
@@ -96,28 +118,6 @@ public class MainActivity extends AppCompatActivity
             super.onBackPressed();
         }
     }
-
-    /*@Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        //getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }*/
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
@@ -153,7 +153,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     public static void updateTableAdapter(){
-        tAdapter.refreshTables();
+        tableAdapter.refreshTables();
     }
 
     public static void updateRestaurantInfo(){
@@ -166,10 +166,14 @@ public class MainActivity extends AppCompatActivity
         restaurantEMail.setText("E-Mail: " + info.getContact().getMail());
     }
 
+    public static void updateMenu(){
+        menuAdapter.refreshMenu();
+    }
+
     private void initContentTable(){
         lv = (ListView) findViewById(R.id.tableListView);
-        tAdapter = new TableAdapter(this);
-        lv.setAdapter(tAdapter);
+        tableAdapter = new TableAdapter(this);
+        lv.setAdapter(tableAdapter);
     }
 
     private void initContentSettings(){
@@ -189,5 +193,12 @@ public class MainActivity extends AppCompatActivity
                 startActivity(changeRestaurantInfo);
             }
         });
+    }
+
+    private void initMenuList(){
+        menuListView = (ExpandableListView) findViewById(R.id.menuList);
+        //prepareListData();
+        menuAdapter = new MenuAdapter(this);
+        menuListView.setAdapter(menuAdapter);
     }
 }

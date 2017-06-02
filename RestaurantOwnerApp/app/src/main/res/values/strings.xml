@@ -6,4 +6,8 @@
     <string name="title_activity_create_table">New Table</string>
     <string name="title_activity_detail_table">Table Details</string>
     <string name="title_activity_change_restaurant_info">Restaurant Info</string>
+    <string name="title_activity_create_menu_item">CreateMenuItemActivity</string>
+    <string name="childPosition">0</string>
+    <string name="groupPosition">1</string>
+    <string name="amountTextView">2</string>
 </resources>
