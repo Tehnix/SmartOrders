@@ -1,26 +1,27 @@
 package kr.ac.kaist.smartorder.smartorder;
 
 import android.content.Intent;
-import android.nfc.FormatException;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
 
     private FrameLayout mContentView;
 
     private CommunicationManager mCommunicationManager;
+
+    private DeliciousData mDeliciousData;
+
+    private DeliciousRestaurantData mDeliciousRestaurantData;
 
     private TextView uiNfcDataText;
 
@@ -59,6 +60,10 @@ public class MainActivity extends AppCompatActivity {
         // @NFC: Set up the NFC Manager.
         mCommunicationManager = new CommunicationManager(this);
 
+        // @BLE: Test restaurant data handler class.
+        mDeliciousData = new DeliciousData();
+        mDeliciousRestaurantData = new DeliciousRestaurantData();
+
         mContentView = (FrameLayout) findViewById(R.id.content);
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
@@ -93,10 +98,17 @@ public class MainActivity extends AppCompatActivity {
         uiBleDataText = (TextView) findViewById(R.id.txtBleName);
         uiBleDataText.setText(mBleName);
         Button btnScanForBle = (Button) findViewById(R.id.btnScanForBle);
+        Button btnStartServer = (Button) findViewById(R.id.btnStartServer);
         btnScanForBle.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onScanButtonClick();
+            }
+        });
+        btnStartServer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onStartServerClick();
             }
         });
     }
@@ -109,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
 
-        Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent);
+        Either<String, String> nfcMessage = mCommunicationManager.getNfcTag(intent);
         uiNfcDataText = (TextView) findViewById(R.id.txtNfcData);
         if (nfcMessage.isRight()) {
             mNfcMessage = nfcMessage.right();
@@ -137,28 +149,52 @@ public class MainActivity extends AppCompatActivity {
     /*
      * @NFC:
      * Disable catching intents in the foreground, when the app is not in focus.
+     *
+     * @BLE:
+     * Unregister broadcast receiver for Ble GATT responses.
      */
+    @Override
     public void onPause() {
         super.onPause();
-        mCommunicationManager.disableForegroundDispatch();
+        mCommunicationManager.handlePause();
     }
 
     /*
      * @NFC:
      * Enable catching intents in the foreground, when the app is in focus.
+     *
+     * @BLE:
+     * Register broadcast receiver for Ble GATT responses.
      */
+    @Override
     public void onResume() {
         super.onResume();
-        mCommunicationManager.enableForegroundDispatch();
+        mCommunicationManager.handleResume();
     }
 
+    /*
+     * @BLE:
+     * Destroy the BLE GATT client service.
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mCommunicationManager.handleDestroy();
+    }
 
     /*
      * @BLE:
      * Scan for devices.
      */
     protected void onScanButtonClick() {
-        mCommunicationManager.scanForDevices();
+        mCommunicationManager.scanForDevices(mDeliciousRestaurantData);
+    }
+
+    private class DeliciousRestaurantData implements ClientData {
+        @Override
+        public void handleMenu(String menu) {
+            Log.i("DeliciousRestaurantData", "Received menu: " + menu);
+        }
     }
 
     /*
@@ -166,14 +202,21 @@ public class MainActivity extends AppCompatActivity {
      * Start a BLE server.
      */
     protected void onStartServerClick() {
-        mCommunicationManager.startBleServer();
+        Toast.makeText(this, "Starting BLE GATT server!", Toast.LENGTH_SHORT).show();
+        mCommunicationManager.startBleServer(mDeliciousData);
     }
 
-    /*
-     * @BLE:
-     * Connect to the BLE server.
-     */
-    protected void onConnectToServerClick() {
-        mCommunicationManager.connectToBleServer();
+    private class DeliciousData implements RestaurantData {
+        @Override
+        public String getMenu() {
+            return "This is the menu!";
+        }
+
+        @Override
+        public boolean handleOrder(String order) {
+            Log.i("DeliciousData.handle..", "Received order: " + order);
+            return true;
+        }
     }
+
 }

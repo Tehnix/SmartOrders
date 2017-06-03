@@ -5,25 +5,41 @@ import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothGattServer;
 import android.bluetooth.BluetoothGattServerCallback;
 import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
 import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.ParcelUuid;
 import android.util.Log;
+import android.widget.Toast;
+
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 @SuppressLint("NewApi")
 public class BleServer {
 
+    private Activity mAppContext;
+
     private BluetoothLeAdvertiser mBleAdvertiser;
 
     private BluetoothGattServer mBleGattServer;
+
+    private RestaurantData mRestaurantData;
+
+    private final Charset UTF_8 = Charset.forName("UTF-8");
+
+    private HashMap<String, BluetoothDevice> mConnectedDevices = new HashMap<>();
 
     AdvertiseSettings mAdvertiseSettings = new AdvertiseSettings.Builder()
             .setConnectable(true)
@@ -55,53 +71,90 @@ public class BleServer {
         @Override
         public void onConnectionStateChange(BluetoothDevice device, int status, int newState) {
             super.onConnectionStateChange(device, status, newState);
-        }
-
-        @Override
-        public void onServiceAdded(int status, BluetoothGattService service) {
-            super.onServiceAdded(status, service);
+            if (mConnectedDevices.containsKey(device.getAddress())) {
+                if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    mConnectedDevices.remove(device.getAddress());
+                }
+            } else {
+                if (newState == BluetoothProfile.STATE_CONNECTED) {
+                    Toast.makeText(mAppContext, "Device connected " + device.getAddress(), Toast.LENGTH_SHORT).show();
+                    mConnectedDevices.put(device.getAddress(), device);
+                }
+            }
         }
 
         @Override
         public void onCharacteristicReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicReadRequest(device, requestId, offset, characteristic);
+            Log.d("BleServer.onCha..Read..", "Got a characteristic read request.");
+
+            // Respond with the menu if it is a read request for that.
+            if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
+                Log.e("BleServer.onCha..Read..", "Respond with menu");
+                Toast.makeText(mAppContext, "Sending menu response", Toast.LENGTH_SHORT).show();
+                String menuResponse = mRestaurantData.getMenu();
+                mBleGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        menuResponse.getBytes(UTF_8));
+            } else {
+                mBleGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_FAILURE,
+                        0,
+                        null);
+            }
         }
 
         @Override
         public void onCharacteristicWriteRequest(BluetoothDevice device, int requestId, BluetoothGattCharacteristic characteristic, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
             super.onCharacteristicWriteRequest(device, requestId, characteristic, preparedWrite, responseNeeded, offset, value);
-        }
+            Log.d("BleServer.onCh..Write..", "Got a characteristic write request.");
+            String decodedValue = new String(value, UTF_8);
+            Log.d("BleServer.onCh..Write..", "Got write value: " + decodedValue);
 
-        @Override
-        public void onDescriptorWriteRequest(BluetoothDevice device, int requestId, BluetoothGattDescriptor descriptor, boolean preparedWrite, boolean responseNeeded, int offset, byte[] value) {
-            super.onDescriptorWriteRequest(device, requestId, descriptor, preparedWrite, responseNeeded, offset, value);
-        }
+            // Do nothing if the request does not expect a response.
+            if (!responseNeeded) {
+                Toast.makeText(mAppContext, "No response needed?", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Respond with the response to an order if it is a write request for that.
+            if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
+                Log.e("BleServer.onCh..Write..", "Accept order");
 
-        @Override
-        public void onDescriptorReadRequest(BluetoothDevice device, int requestId, int offset, BluetoothGattDescriptor descriptor) {
-            super.onDescriptorReadRequest(device, requestId, offset, descriptor);
+                boolean orderStatus = mRestaurantData.handleOrder(decodedValue);
+                String orderResponse = "Invalid order!";
+                if (orderStatus) {
+                    orderResponse = "Order received!";
+                }
+                Toast.makeText(mAppContext, "Received order!", Toast.LENGTH_SHORT).show();
+                mBleGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        0,
+                        orderResponse.getBytes(UTF_8));
+            } else {
+                mBleGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_FAILURE,
+                        0,
+                        null);
+            }
         }
 
         @Override
         public void onNotificationSent(BluetoothDevice device, int status) {
             super.onNotificationSent(device, status);
         }
-
-        @Override
-        public void onMtuChanged(BluetoothDevice device, int mtu) {
-            super.onMtuChanged(device, mtu);
-        }
-
-        @Override
-        public void onExecuteWrite(BluetoothDevice device, int requestId, boolean execute) {
-            super.onExecuteWrite(device, requestId, execute);
-        }
     };
 
     /*
      * Initiate advertising the BLE services.
      */
-    public BleServer(Activity context, BluetoothManager bleManager, BluetoothAdapter bleAdapter) {
+    public BleServer(Activity context, BluetoothManager bleManager, BluetoothAdapter bleAdapter, RestaurantData restaurantData) {
+        mAppContext = context;
+        mRestaurantData = restaurantData;
         // Start advertising.
         mBleAdvertiser = bleAdapter.getBluetoothLeAdvertiser();
         mBleAdvertiser.startAdvertising(
@@ -110,12 +163,28 @@ public class BleServer {
                 mAdvertiseScanResponseData,
                 mAdvertiseCallback
         );
+        if (mBleAdvertiser == null) {
+            Log.e("BleServer", "Couldn't instantiate BLE Advertiser");
+        }
 
         // Start the GATT server.
-        mBleGattServer = bleManager.openGattServer(context, mBleGattCallback);
+        mBleGattServer = bleManager.openGattServer(mAppContext, mBleGattCallback);
+        if (mBleGattServer == null) {
+            Log.e("BleServer", "Couldn't instantiate BLE GATT server!!");
+        }
         BluetoothGattService service = new BluetoothGattService(BleManager.UUID_SMARTORDER, BluetoothGattService.SERVICE_TYPE_PRIMARY);
-        BluetoothGattCharacteristic characteristic = new BluetoothGattCharacteristic(BleManager.UUID_SMARTORDER_MENU, BluetoothGattCharacteristic.PROPERTY_READ, BluetoothGattCharacteristic.PERMISSION_READ);
-        service.addCharacteristic(characteristic);
+        BluetoothGattCharacteristic menuCharacteristic = new BluetoothGattCharacteristic
+                (BleManager.UUID_SMARTORDER_MENU,
+                        BluetoothGattCharacteristic.PROPERTY_READ,
+                        BluetoothGattCharacteristic.PERMISSION_READ
+                );
+        BluetoothGattCharacteristic orderCharacteristic = new BluetoothGattCharacteristic
+                (BleManager.UUID_SMARTORDER_DATA,
+                        BluetoothGattCharacteristic.PROPERTY_WRITE,
+                        BluetoothGattCharacteristic.PERMISSION_WRITE
+                );
+        service.addCharacteristic(menuCharacteristic);
+        service.addCharacteristic(orderCharacteristic);
         mBleGattServer.addService(service);
     }
 

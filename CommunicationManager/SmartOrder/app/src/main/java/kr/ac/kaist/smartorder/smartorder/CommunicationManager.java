@@ -3,6 +3,9 @@ package kr.ac.kaist.smartorder.smartorder;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 public class CommunicationManager {
@@ -39,7 +42,7 @@ public class CommunicationManager {
      *
      * @see NfcManager.readNfcTag
      */
-    public Either<String, String> readNfcTag(Intent intent) {
+    public Either<String, String> readNfcTag(Intent intent, ClientData clientData) {
         Either<String, String> nfcMessage = mNfcManager.readNfcTag(intent);
         if (nfcMessage.isRight()) {
             // Split the payload into table id and BLE address on the delimiter ";;".
@@ -51,7 +54,7 @@ public class CommunicationManager {
                 Log.i("CommMan.readNfcTag", "Table ID: " + tableId);
                 Log.i("CommMan.readNfcTag", "BLE address: " + bleAddress);
                 // Start scanning for the BLE address.
-                scanForDevices();
+                scanForDevices(clientData);
             } else {
                 return Either.left("Malformed payload, must contain at least table id and BLE address");
             }
@@ -104,17 +107,43 @@ public class CommunicationManager {
     }
 
     /*
-     * @see NfcManager.enableForegroundDispatch
+     * Convenience function to handle all the things on app pause.
+     *
+     * @see NfcManager.disableForegroundDispatch
      */
-    public void enableForegroundDispatch() {
-        mNfcManager.enableForegroundDispatch();
+    public void handlePause() {
+        mNfcManager.disableForegroundDispatch();
+        mBleManager.unregisterReceiver();
     }
 
     /*
+     * Convenience function to handle all the things on app resume.
+     *
      * @see NfcManager.disableForegroundDispatch
      */
-    public void disableForegroundDispatch() {
-        mNfcManager.disableForegroundDispatch();
+    public void handleResume() {
+        mNfcManager.enableForegroundDispatch();
+        mBleManager.registerReceiver();
+    }
+
+    /*
+     * Convenience function to handle all the things on app destroy.
+     *
+     * @see NfcManager.disableForegroundDispatch
+     */
+    public void handleDestroy() {
+        mBleManager.destroyService();
+        mBleManager.disconnectFromServer();
+    }
+
+    /*
+     * Submit the order to the BLE GATT server. Returns true if the order was submitted,
+     * and false otherwise.
+     *
+     * @see BleManager.submitOrder
+     */
+    public boolean submitOrder(String order) {
+        return mBleManager.submitOrder(order);
     }
 
     /*
@@ -123,9 +152,9 @@ public class CommunicationManager {
      *
      * @see BleManager.scanForDevices
      */
-    public boolean scanForDevices() {
+    public boolean scanForDevices(ClientData clientData) {
         if (bleAddress != null) {
-            mBleManager.scanForDevices(bleAddress);
+            mBleManager.scanForDevices(bleAddress, clientData);
             return true;
         } else {
             return false;
@@ -137,18 +166,8 @@ public class CommunicationManager {
      *
      * @see BleManager.startBleServer
      */
-    public boolean startBleServer() {
-        mBleManager.startBleServer();
-        return false;
+    public boolean startBleServer(RestaurantData restaurantData) {
+        return mBleManager.startBleServer(restaurantData);
     }
 
-    /*
-     * Start a BLE GATT server that clients can connect to.
-     *
-     * @see BleManager.connectToBleServer
-     */
-    public boolean connectToBleServer() {
-        mBleManager.connectToBleServer();
-        return false;
-    }
 }

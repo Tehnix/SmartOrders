@@ -103,7 +103,7 @@ Handle new intents (i.e. new NFC reads) with `onNewIntent`,
 @Override
 protected void onNewIntent(Intent intent) {
     super.onNewIntent(intent);
-    Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent);
+    Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent, clientData);
     if (nfcMessage.isRight()) {
         Log.i("NFC Message", nfcMessage.right());
     }  else {
@@ -112,7 +112,11 @@ protected void onNewIntent(Intent intent) {
 }
 ```
 
+NOTE: The `clientData` is an object implementing the `ClientData` interface. For more, see the BLE section point 3.
+
 This is used both to read the NFC tag message and also to discover the NFC tag for writing on it.
+
+Alternatively, you might only want the Tag object itself (e.g. for writing) and not need the automatic BLE connecting. In this case, simply replace `readNfcTag(intent, clientData)` with `getNfcTag(intent)` directly.
 
 #### 5. Write NFC data
 
@@ -122,6 +126,7 @@ Hook the NFC tag reader up to an action,
 
 ```java
 protected void onWriteButtonClick() {
+    String tableNumber = "12";
     Either<String, String> writeResult = mCommunicationManager.writeNfcTag(tableNumber);
     if (writeResult.isRight()) {
         Log.i("NFC Write Result", writeResult.right());
@@ -133,6 +138,8 @@ protected void onWriteButtonClick() {
 
 Note, that the `writeNfcTag` assumes you are also reading for NFC tags, since this is needed to actually detect the NFC tag.
 
+The data written on the NFC tag consists of a table number and a device identifier. Since permissions to access the MAC address of the device has been removed later on, this will for now be the name of the device.
+
 
 #### 6. Handle intents in the foreground
 
@@ -142,13 +149,13 @@ File: `MainActivity` (or whichever file is your root activity)
 @Override
 public void onPause() {
     super.onPause();
-    mCommunicationManager.disableForegroundDispatch();
+    mCommunicationManager.handlePause();
 }
 
 @Override
 public void onResume() {
     super.onResume();
-    mCommunicationManager.enableForegroundDispatch();
+    mCommunicationManager.handleResume();
 }
 ```
 
@@ -177,7 +184,66 @@ Add permissions for using BLE,
 <uses-permission android:name="android.permission.BLUETOOTH"/>
 <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
 <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+<!-- Only needed for scanning in client app -->
+<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
 ```
 
-#### 2.
-More to come...
+#### 2. Setting it up in the Restaurant owner app
+Setting it up for the restaurant app.
+
+You need to implement the interface for `RestaurantData`. Below is a very short example.
+
+```java
+private class DeliciousData implements RestaurantData {
+    @Override
+    public String getMenu() {
+        return "This is the menu!";
+    }
+
+    @Override
+    public boolean handleOrder(String order) {
+        Log.i("DeliciousData.handle..", "Received order: " + order);
+        return true;
+    }
+}
+```
+
+This is used in the BLE server to handle requests for menu and also to handle orders.
+
+You can now initiate the BLE GATT server whenever you app is ready with,
+
+```java
+mCommunicationManager.startBleServer(mDeliciousData);
+```
+
+Finally, you add a handler on app destroy,
+
+```java
+@Override
+public void onDestroy() {
+    super.onDestroy();
+    mCommunicationManager.handleDestroy();
+}
+```
+
+#### 3. Setting it up in the Client app
+
+You need to implement the interface for `ClientData`. Below is a very short example.
+
+```java
+private class DeliciousRestaurantData implements ClientData {
+    @Override
+    public void handleMenu(String menu) {
+        Log.i("DeliciousRestaurantData", "Received menu: " + menu);
+    }
+}
+```
+
+This is used in the BLE server to pass on the menu data once it's received.
+
+To submit an order, call,
+
+```java
+String myOrder = "...";
+mCommunicationManager.submitOrder(myOrder);
+```
