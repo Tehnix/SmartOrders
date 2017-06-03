@@ -104,7 +104,7 @@ public class CreateTableActivity extends AppCompatActivity{
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
-        Either<String, String> readResult = mCommunicationManager.readNfcTag(intent);
+        Either<String, String> readResult = mCommunicationManager.getNfcTag(intent);
         if (readResult.isSuccessful()) {
             Log.i("NfcRead", readResult.success());
         } else {
@@ -123,7 +123,4 @@ public class CreateTableActivity extends AppCompatActivity{
         super.onResume();
         mCommunicationManager.enableForegroundDispatch();
     }
-
-
-
 }

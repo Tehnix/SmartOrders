@@ -13,6 +13,7 @@ import android.util.Log;
 
 import java.util.List;
 
+import kaist.restaurantownerapp.R;
 import kaist.restaurantownerapp.data.ContactInfo;
 import kaist.restaurantownerapp.data.GeneralInfo;
 import kaist.restaurantownerapp.data.Menu;
@@ -61,7 +62,7 @@ public class DBConnector extends SQLiteOpenHelper{
 
     public DBConnector(Context context) {
 
-        super(context, DATABASE_NAME , null, 1);
+        super(context, DATABASE_NAME , null, 29);
         Log.d("dbConnector", "constructor");
     }
 
@@ -259,8 +260,7 @@ public class DBConnector extends SQLiteOpenHelper{
 
         List<MenuItem> drinksList = new ArrayList<>();
         List<MenuItem> mainDishList = new ArrayList<>();
-        List<MenuItem> dessertList = new ArrayList<>();
-        List<MenuItem> appetizerList = new ArrayList<>();
+        List<MenuItem> sideDishList = new ArrayList<>();
         List<MenuEntry> menu = new ArrayList<>();
         // Select All Query
         String selectQuery = "SELECT  * FROM " + MENU_TABLE_NAME + " ORDER BY " + MENU_COLUMN_CATEGORY;
@@ -275,22 +275,19 @@ public class DBConnector extends SQLiteOpenHelper{
                         cursor.getString(1), cursor.getString(2), cursor.getString(3), Double.parseDouble(cursor.getString(4)));
                 // Adding Menu Item to list
                 String test = item.getCategory();
-                if (item.getCategory().equals("main dishes")) {
+                if (item.getCategory().equals("main dish")) {
                     mainDishList.add(item);
-                } else if(item.getCategory().equals("appetizer")){
-                    appetizerList.add(item);
-                } else if(item.getCategory().equals("drink")){
+                } else if(item.getCategory().equals("side dish")){
+                    sideDishList.add(item);
+                } else if(item.getCategory().equals("beverage")){
                     drinksList.add(item);
-                }else if(item.getCategory().equals("dessert")) {
-                    dessertList.add(item);
                 }
             } while (cursor.moveToNext());
         }
 
-        menu.add(new MenuEntry("main dishes", mainDishList));
-        menu.add(new MenuEntry("appetizer", appetizerList));
-        menu.add(new MenuEntry("drinks", drinksList));
-        menu.add(new MenuEntry("dessert", dessertList));
+        menu.add(new MenuEntry("main dish", mainDishList));
+        menu.add(new MenuEntry("side dish", sideDishList));
+        menu.add(new MenuEntry("beverage", drinksList));
         return new Menu(menu);
     }
 
@@ -362,5 +359,19 @@ public class DBConnector extends SQLiteOpenHelper{
             } while (cursor.moveToNext());
         }
         return orderList;
+    }
+
+    public void generateMenuItems(){
+        addMenuItem(new MenuItem("Tender Crispy Chicken", "main dish", "Very tender chicken", 9000.00));
+        addMenuItem(new MenuItem("Hot Chicken", "main dish", "Careful! Quite hot chicken", 12000.00));
+        addMenuItem(new MenuItem("Steak", "main dish", "A nice well seasoned steak", 15000.00));
+        addMenuItem(new MenuItem("Coca Cola", "beverage", "sweet soda", 500.00));
+        addMenuItem(new MenuItem("Pepsi", "beverage", "sweet soda", 600.00));
+        addMenuItem(new MenuItem("Cass Beer", "beverage", "beer", 3000.00));
+        addMenuItem(new MenuItem("Soju", "beverage", "spirit", 500.00));
+        addMenuItem(new MenuItem("Pommes Frites", "side dish", "Crispy oven made fries", 4500.00));
+        addMenuItem(new MenuItem("Ketchup", "side dish", "", 100.00));
+        addMenuItem(new MenuItem("Mustard", "side dish", "", 100.00));
+
     }
 }

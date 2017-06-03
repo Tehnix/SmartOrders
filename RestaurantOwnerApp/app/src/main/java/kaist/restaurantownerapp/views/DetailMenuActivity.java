@@ -61,14 +61,12 @@ public class DetailMenuActivity extends AppCompatActivity {
 
         name.setText(item.getName());
         String categoryName = item.getCategory();
-        if(categoryName.equals(R.string.category_dessert)){
-            category.setSelection(3);
-        }else if(categoryName.equals(R.string.category_drink)){
-            category.setSelection(0);
+        if(categoryName.equals(R.string.category_side_dish)){
+            category.setSelection(1);
         }else if(categoryName.equals(R.string.category_main_dish)){
             category.setSelection(2);
-        }else if(categoryName.equals(R.string.category_appetizer)){
-            category.setSelection(1);
+        }else if(categoryName.equals(R.string.category_beverage)) {
+            category.setSelection(0);
         }
 
         description.setText(item.getDescription());

@@ -6,16 +6,20 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.lang.String;
 
 import kaist.restaurantownerapp.R;
+import kaist.restaurantownerapp.communication.CommunicationManager;
+import kaist.restaurantownerapp.communication.Either;
 import kaist.restaurantownerapp.data.*;
 import kaist.restaurantownerapp.data.handler.DBConnector;
 
@@ -31,6 +35,8 @@ public class DetailTableActivity extends AppCompatActivity {
 
     private DBConnector db;
 
+    private CommunicationManager mCommunicationManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +45,8 @@ public class DetailTableActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         db = MainActivity.getDatabase();
+
+        mCommunicationManager = new CommunicationManager((this));
 
         // add back arrow to toolbar
         if (getSupportActionBar() != null){
@@ -84,6 +92,19 @@ public class DetailTableActivity extends AppCompatActivity {
             }
         });
 
+        identifyNFC.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                int tableNumber = table.getTableNumber();
+                if(writeTableNumberToNFC(tableNumber)){
+                    Toast.makeText(getApplicationContext(), "Writting successfull!", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(getApplicationContext(), "No NFC Tag found!", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
 
 
         tableLabel.setText("Table: "+ table.getTableNumber());
@@ -114,5 +135,17 @@ public class DetailTableActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    protected boolean writeTableNumberToNFC(int tableNumber) {
+        String number = String.valueOf(tableNumber);
+        Either<String, String> writeResult = mCommunicationManager.writeNfcTag(number);
+        if (writeResult.isSuccessful()) {
+            Log.i("NFC Write Result", writeResult.success());
+            return true;
+        } else {
+            Log.i("Error in NFC Result", writeResult.error());
+            return false;
+        }
     }
 }
