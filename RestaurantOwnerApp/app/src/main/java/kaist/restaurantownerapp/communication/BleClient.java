@@ -1,4 +1,4 @@
-package kr.ac.kaist.smartorder.smartorder;
+package kaist.restaurantownerapp.communication;
 
 import android.app.Activity;
 import android.app.Service;
