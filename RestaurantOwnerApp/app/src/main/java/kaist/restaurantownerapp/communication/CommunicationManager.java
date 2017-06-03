@@ -7,6 +7,8 @@ import android.util.Log;
 
 public class CommunicationManager {
 
+    public static final String IDENTIFIER = "com.kaist.antr.kaist";
+
     private Activity mAppContext;
 
     private NfcManager mNfcManager;
@@ -32,6 +34,9 @@ public class CommunicationManager {
      * Reads the NFC tag and checks if there is a valid payload in the NFC message. A
      * valid payload contains a table ID and a BLE address for the host device.
      *
+     * This method is identical to CommunicationManager.getNfcTag, except this starts
+     * the BLE scan automatically.
+     *
      * @see NfcManager.readNfcTag
      */
     public Either<String, String> readNfcTag(Intent intent) {
@@ -47,6 +52,33 @@ public class CommunicationManager {
                 Log.i("CommMan.readNfcTag", "BLE address: " + bleAddress);
                 // Start scanning for the BLE address.
                 scanForDevices();
+            } else {
+                return Either.left("Malformed payload, must contain at least table id and BLE address");
+            }
+        }
+        return nfcMessage;
+    }
+
+    /*
+     * Reads the NFC tag and checks if there is a valid payload in the NFC message. A
+     * valid payload contains a table ID and a BLE address for the host device.
+     *
+     * This method is identical to CommunicationManager.readNfcTag, except this method
+     * does *NOT* start the BLE scan automatically.
+     *
+     * @see NfcManager.readNfcTag
+     */
+    public Either<String, String> getNfcTag(Intent intent) {
+        Either<String, String> nfcMessage = mNfcManager.readNfcTag(intent);
+        if (nfcMessage.isRight()) {
+            // Split the payload into table id and BLE address on the delimiter ";;".
+            String[] payload = nfcMessage.right().split(";;");
+            if (payload.length > 1) {
+                tableId = payload[0];
+                bleAddress = payload[1];
+                Log.d("CommMan.readNfcTag", "Found NFC payload");
+                Log.i("CommMan.readNfcTag", "Table ID: " + tableId);
+                Log.i("CommMan.readNfcTag", "BLE address: " + bleAddress);
             } else {
                 return Either.left("Malformed payload, must contain at least table id and BLE address");
             }
@@ -98,5 +130,25 @@ public class CommunicationManager {
         } else {
             return false;
         }
+    }
+
+    /*
+     * Start a BLE GATT server that clients can connect to.
+     *
+     * @see BleManager.startBleServer
+     */
+    public boolean startBleServer() {
+        mBleManager.startBleServer();
+        return false;
+    }
+
+    /*
+     * Start a BLE GATT server that clients can connect to.
+     *
+     * @see BleManager.connectToBleServer
+     */
+    public boolean connectToBleServer() {
+        mBleManager.connectToBleServer();
+        return false;
     }
 }

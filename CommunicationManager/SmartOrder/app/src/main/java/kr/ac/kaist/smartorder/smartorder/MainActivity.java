@@ -153,7 +153,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /*
+     * @BLE:
+     * Scan for devices.
+     */
     protected void onScanButtonClick() {
         mCommunicationManager.scanForDevices();
+    }
+
+    /*
+     * @BLE:
+     * Start a BLE server.
+     */
+    protected void onStartServerClick() {
+        mCommunicationManager.startBleServer();
+    }
+
+    /*
+     * @BLE:
+     * Connect to the BLE server.
+     */
+    protected void onConnectToServerClick() {
+        mCommunicationManager.connectToBleServer();
     }
 }
