@@ -11,4 +11,6 @@
     <string name="button_scan_ble">Scan For BLE Devices!</string>
     <string name="txt_ble_default_data">No Data Yet!</string>
     <string name="txt_home_info">Press the NFC button to try NFC actions, and press the BLE button to try BLE actions.</string>
+    <string name="txt_ble_server">Start Server</string>
+    <string name="txt_ble_connect">Connect To Server</string>
 </resources>
