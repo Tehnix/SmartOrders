@@ -5,7 +5,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
-import android.widget.ImageButton;
 import android.widget.BaseExpandableListAdapter;
 import android.graphics.Typeface;
 
@@ -33,7 +32,6 @@ public class MenuAdapter extends BaseExpandableListAdapter{
         menu = db.getMenu();
         this.listDataHeader = menu.getMenu();
         this.listDataChild = constructListDataChild();
-
     }
 
     private HashMap<String,List<MenuItem>> constructListDataChild(){

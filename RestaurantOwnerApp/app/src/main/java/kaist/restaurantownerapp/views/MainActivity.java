@@ -15,8 +15,8 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.ViewFlipper;
 import android.content.Intent;
-import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
+import android.widget.BaseExpandableListAdapter;
 
 import java.util.List;
 import java.util.HashMap;
@@ -25,13 +25,15 @@ import kaist.restaurantownerapp.R;
 import kaist.restaurantownerapp.data.*;
 import kaist.restaurantownerapp.data.handler.DBConnector;
 import kaist.restaurantownerapp.listviewhandler.MenuAdapter;
+import kaist.restaurantownerapp.listviewhandler.OrderAdapter;
 import kaist.restaurantownerapp.listviewhandler.TableAdapter;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
 
     private ViewFlipper vf;
-    private ListView lv;
+    private ListView tableListView;
+    private ListView orderListView;
     private ContentState currentContent = ContentState.ORDERS;
 
     public static String [] prgmNameList={"1","2","3","4","5","6","7","8","9"};
@@ -39,11 +41,14 @@ public class MainActivity extends AppCompatActivity
     private Intent createNewTable;
     private Intent changeRestaurantInfo;
     private Intent createNemMenuItem;
+    private Intent detailMenuItem;
 
     private FloatingActionButton fab;
 
     public static DBConnector db;
+
     public static TableAdapter tableAdapter;
+    public static OrderAdapter orderAdapter;
 
     // Content Settings Views
     public static TextView restaurantName;
@@ -76,6 +81,8 @@ public class MainActivity extends AppCompatActivity
         changeRestaurantInfo.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         createNemMenuItem = new Intent(this, CreateMenuItemActivity.class);
         createNemMenuItem.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        detailMenuItem = new Intent(this, DetailMenuActivity.class);
+        detailMenuItem.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -107,6 +114,7 @@ public class MainActivity extends AppCompatActivity
         initContentTable();
         initContentSettings();
         initMenuList();
+        initOrderList();
     }
 
     @Override
@@ -170,10 +178,14 @@ public class MainActivity extends AppCompatActivity
         menuAdapter.refreshMenu();
     }
 
+    public static void updateOrders(){
+        orderAdapter.refreshOrders();
+    }
+
     private void initContentTable(){
-        lv = (ListView) findViewById(R.id.tableListView);
+        tableListView = (ListView) findViewById(R.id.tableListView);
         tableAdapter = new TableAdapter(this);
-        lv.setAdapter(tableAdapter);
+        tableListView.setAdapter(tableAdapter);
     }
 
     private void initContentSettings(){
@@ -197,8 +209,23 @@ public class MainActivity extends AppCompatActivity
 
     private void initMenuList(){
         menuListView = (ExpandableListView) findViewById(R.id.menuList);
-        //prepareListData();
         menuAdapter = new MenuAdapter(this);
         menuListView.setAdapter(menuAdapter);
+        menuListView.setOnChildClickListener(new ExpandableListView.OnChildClickListener() {
+            @Override
+            public boolean onChildClick(ExpandableListView parent, View v, int groupPosition, int childPosition, long id) {
+                int i = (int) menuAdapter.getChildId(groupPosition, childPosition);
+                kaist.restaurantownerapp.data.MenuItem childObject = (kaist.restaurantownerapp.data.MenuItem) menuAdapter.getChild(groupPosition, childPosition);
+                detailMenuItem.putExtra("id", childObject.getId());
+                startActivity(detailMenuItem);
+                return false;
+            }
+        });
+    }
+
+    private void initOrderList(){
+        orderListView = (ListView) findViewById(R.id.orderListView);
+        orderAdapter = new OrderAdapter(this);
+        orderListView.setAdapter(orderAdapter);
     }
 }

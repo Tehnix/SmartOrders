@@ -18,7 +18,10 @@ import kaist.restaurantownerapp.data.GeneralInfo;
 import kaist.restaurantownerapp.data.Menu;
 import kaist.restaurantownerapp.data.MenuEntry;
 import kaist.restaurantownerapp.data.MenuItem;
+import kaist.restaurantownerapp.data.Order;
+import kaist.restaurantownerapp.data.OrderItem;
 import kaist.restaurantownerapp.data.Table;
+import kaist.restaurantownerapp.listviewhandler.OrderAdapter;
 
 public class DBConnector extends SQLiteOpenHelper{
     private static final String DATABASE_NAME = "SmartOrder.db";
@@ -241,13 +244,13 @@ public class DBConnector extends SQLiteOpenHelper{
     public MenuItem getMenuItem(int id){
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(MENU_TABLE_NAME, new String[] {
-                        MENU_COLUMN_ID, MENU_COLUMN_NAME, MENU_COLUMN_CATEGORY, MENU_COLUMN_DESCRIPTION}, MENU_COLUMN_PRICE + "=?",
+                        MENU_COLUMN_ID, MENU_COLUMN_NAME, MENU_COLUMN_CATEGORY, MENU_COLUMN_DESCRIPTION, MENU_COLUMN_PRICE}, MENU_COLUMN_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
 
         MenuItem item = new MenuItem(Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1), cursor.getString(2),cursor.getString(3),  Double.parseDouble(cursor.getString(4)));
+                cursor.getString(1), cursor.getString(2),cursor.getString(3), Double.parseDouble(cursor.getString(4)));
         return item;
     }
 
@@ -302,7 +305,7 @@ public class DBConnector extends SQLiteOpenHelper{
         values.put(MENU_COLUMN_PRICE, item.getPrice());
 
         // updating row
-        return db.update(TABLES_TABLE_NAME, values, TABLES_COLUMN_NUMBER + " = ?",
+        return db.update(MENU_TABLE_NAME, values, MENU_COLUMN_ID + " = ?",
                 new String[] {String.valueOf(item.getId())});
     }
 
@@ -312,5 +315,52 @@ public class DBConnector extends SQLiteOpenHelper{
         db.delete(MENU_TABLE_NAME, MENU_COLUMN_ID + " = ?",
                 new String[] { String.valueOf(item.getId())});
         db.close();
+    }
+
+    // Adding new Menu Item
+    public boolean addOrder(OrderItem order) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(ORDERS_COLUMN_MENUID, order.getMenuItem().getId());
+        contentValues.put(ORDERS_COLUMN_TABLEID, order.getTableNumber());
+        contentValues.put(ORDERS_COLUMN_NUMBER, order.getQuantity());
+        db.insert(ORDERS_TABLE_NAME, null, contentValues);
+        return true;
+    }
+
+    // Getting one Menu Item
+    public OrderItem getOrderItem(int id){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(ORDERS_TABLE_NAME, new String[] {
+                        ORDERS_COLUMN_MENUID, ORDERS_COLUMN_TABLEID, ORDERS_COLUMN_NUMBER}, ORDERS_COLUMN_ID + "=?",
+                new String[] { String.valueOf(id) }, null, null, null, null);
+        if (cursor != null)
+            cursor.moveToFirst();
+
+        MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(0)));
+
+        OrderItem orderItem = new OrderItem(menuItem, Integer.parseInt(cursor.getString(1)), Integer.parseInt(cursor.getString(2)));
+
+        return orderItem;
+    }
+
+    public List<OrderItem> getOrderItems(){
+        List<OrderItem> orderList = new ArrayList<>();
+
+        String selectQuery = "SELECT  * FROM " + ORDERS_TABLE_NAME;
+
+        SQLiteDatabase db = this.getWritableDatabase();
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (cursor.moveToFirst()) {
+            do {
+                MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(0)));
+                OrderItem orderItem = new OrderItem(menuItem, Integer.parseInt(cursor.getString(1)), Integer.parseInt(cursor.getString(2)));
+                // Adding contact to list
+                orderList.add(orderItem);
+            } while (cursor.moveToNext());
+        }
+        return orderList;
     }
 }

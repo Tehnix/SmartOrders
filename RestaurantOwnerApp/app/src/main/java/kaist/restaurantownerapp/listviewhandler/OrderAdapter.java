@@ -18,7 +18,7 @@ import kaist.restaurantownerapp.R;
 
 public class OrderAdapter extends BaseAdapter{
     private DBConnector db;
-    private List<Order> orders;
+    private List<OrderItem> orders;
     private Context context;
     private Intent detailTable;
 
@@ -31,7 +31,7 @@ public class OrderAdapter extends BaseAdapter{
                 getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         db = MainActivity.getDatabase();
-        //tables = db.getOrders();
+        orders = db.getOrderItems();
         detailTable = new Intent(this.context, DetailTableActivity.class);
     }
     @Override
@@ -55,11 +55,13 @@ public class OrderAdapter extends BaseAdapter{
 
     public class Holder
     {
-        TextView tv;
+        TextView tableNumber;
+        TextView menuItemName;
+        TextView quantity;
     }
 
-    public void refreshTables() {
-        //tables = db.getAllTables();
+    public void refreshOrders() {
+        orders = db.getOrderItems();
         notifyDataSetChanged();
     }
 
@@ -68,10 +70,16 @@ public class OrderAdapter extends BaseAdapter{
         // TODO Auto-generated method stub
         Holder holder=new Holder();
         View rowView;
-        rowView = inflater.inflate(R.layout.table_list, null);
-        holder.tv=(TextView) rowView.findViewById(R.id.tableListNumber);
-        /*holder.tv.setText("Table: " + tables.get(position).getTableNumber());
-        rowView.setOnClickListener(new OnClickListener() {
+        rowView = inflater.inflate(R.layout.order_list, null);
+        holder.tableNumber = (TextView) rowView.findViewById(R.id.orderTableNumber);
+        holder.menuItemName = (TextView) rowView.findViewById(R.id.orderMenuItemName);
+        holder.quantity = (TextView) rowView.findViewById(R.id.orderQuantity);
+
+        holder.tableNumber.setText("Table: " + orders.get(position).getTableNumber());
+        holder.menuItemName.setText("Dish: " + orders.get(position).getMenuItem().getName());
+        holder.quantity.setText("Quantity: " + orders.get(position).getQuantity());
+
+        /*rowView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
