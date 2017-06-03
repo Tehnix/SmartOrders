@@ -50,9 +50,9 @@ public class BleManager {
     /*
      * UUIDs to identify the data type.
      */
-    public final static UUID UUID_SMARTORDER = UUID.fromString("0x2AB7");
-    public final static UUID UUID_SMARTORDER_MENU = UUID.fromString("0x2AB8");
-    public final static UUID UUID_SMARTORDER_DATA = UUID.fromString("0x2AB9");
+    public final static UUID UUID_SMARTORDER = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fb");
+    public final static UUID UUID_SMARTORDER_MENU = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fc");
+    public final static UUID UUID_SMARTORDER_DATA = UUID.fromString("00002a37-0000-1000-8000-00805f9b34fd");
 
     /*
      * Handle BLE scan results.
