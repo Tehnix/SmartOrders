@@ -2,6 +2,7 @@ package kaist.restaurantownerapp.views;
 
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -16,12 +17,10 @@ import android.widget.TextView;
 import android.widget.ViewFlipper;
 import android.content.Intent;
 import android.widget.ExpandableListView;
-import android.widget.BaseExpandableListAdapter;
-
-import java.util.List;
-import java.util.HashMap;
 
 import kaist.restaurantownerapp.R;
+import kaist.restaurantownerapp.communication.CommunicationManager;
+import kaist.restaurantownerapp.communication.Either;
 import kaist.restaurantownerapp.data.*;
 import kaist.restaurantownerapp.data.handler.DBConnector;
 import kaist.restaurantownerapp.listviewhandler.MenuAdapter;
@@ -61,9 +60,6 @@ public class MainActivity extends AppCompatActivity
 
     private ExpandableListView menuListView;
     public static MenuAdapter menuAdapter;
-    //ExpandableListView expListView;
-    private List<String> listDataHeaderLISTCLASS;
-    private HashMap<String, List<String>> listDataChildLISTCLASS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +67,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
 
         db = new DBConnector(this);
+        db.generateMenuItems();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);

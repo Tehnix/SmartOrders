@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="spinnerItems">
-        <item>drink</item>
-        <item>appetizer</item>
+        <item>beverage</item>
+        <item>side dish</item>
         <item>main dish</item>
-        <item>dessert</item>
     </string-array>
 </resources>

@@ -13,7 +13,6 @@
     <string name="title_activity_detail_menu">DetailMenuActivity</string>
 
     <string name="category_main_dish">main dish</string>
-    <string name="category_drink">drink</string>
-    <string name="category_appetizer">appetizer</string>
-    <string name="category_dessert">dessert</string>
+    <string name="category_beverage">beverage</string>
+    <string name="category_side_dish">side dish</string>
 </resources>

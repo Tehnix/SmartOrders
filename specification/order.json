@@ -1,7 +1,8 @@
 {
   "tableNumber": 25,
   "orderItems": [
-    {
+    { 
+      "tableNumber": 1,
       "menuItem": {
         "id": 12,
         "name": "Tender Crispy Chicken",
@@ -11,6 +12,7 @@
       "quantity": 2
     },
     {
+      "tableNumber": 2,
       "menuItem": {
         "id": 13,
         "name": "Hot Chicken",
