@@ -19,6 +19,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".views.CreateTableActivity"
+            android:label="@string/title_activity_create_table"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".views.DetailTableActivity"
+            android:label="@string/title_activity_detail_table"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".views.ChangeRestaurantInfoActivity"
+            android:label="@string/title_activity_change_restaurant_info"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".views.CreateMenuItemActivity"
+            android:label="@string/title_activity_create_menu_item"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".views.DetailMenuActivity"
+            android:label="@string/title_activity_detail_menu"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>

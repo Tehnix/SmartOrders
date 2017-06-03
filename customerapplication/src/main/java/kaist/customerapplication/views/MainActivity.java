@@ -2,6 +2,7 @@ package kaist.customerapplication.views;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
@@ -13,11 +14,28 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.kaist.antr.kaist.R;
 
+import kaist.customerapplication.CommonObjectManager;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.RestaurantOwnerApplicationWrapper;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.ContactInfo;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.GeneralInfo;
+import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
+
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
+
+    RestaurantOwnerApplicationWrapper restaurantOwnerApplicationWrapper;
+    ConstraintLayout mContentView;
+    RestaurantInfo restaurantInfo;
+
+    TextView nameView;
+    TextView descriptionView;
+    TextView addressView;
+    TextView emailView;
+    TextView phoneView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -27,15 +45,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -44,6 +53,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+
+        restaurantOwnerApplicationWrapper = CommonObjectManager.restaurantOwnerApplicationWrapper;
+        restaurantInfo = restaurantOwnerApplicationWrapper.getRestaurantInfo();
+
+        mContentView = (ConstraintLayout) findViewById(R.id.mainContent);
+        if(restaurantInfo != null){
+            setRestaurantInfoView(restaurantInfo);
+        }else{
+            setNoRestaurantView();
+        }
+
+
     }
 
     @Override
@@ -71,9 +92,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        /*if (id == R.id.action_settings) {
             return true;
-        }
+        }*/
 
         return super.onOptionsItemSelected(item);
     }
@@ -85,22 +106,46 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         if (id == R.id.nav_see_menu) {
-            Intent intent = new Intent(getApplicationContext(), MenuActivity.class);
-            startActivity(intent);
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
+            startActivity(MenuActivity.class);
+        } else if (id == R.id.nav_scan_tag) {
+            startActivity(ScanTagActivity.class);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void startActivity(Class activityClass){
+        Intent intent = new Intent(getApplicationContext(), activityClass);
+        startActivity(intent);
+    }
+
+    private void setRestaurantInfoView(RestaurantInfo resInfo){
+        GeneralInfo genInfo = resInfo.info;
+        ContactInfo contact = genInfo.getContact();
+
+        mContentView.removeAllViews();
+        View restaurantInfoView = getLayoutInflater().inflate(R.layout.restaurant_info_layout, null);
+        mContentView.addView(restaurantInfoView);
+
+        nameView = (TextView) findViewById(R.id.resNameText);
+        descriptionView = (TextView) findViewById(R.id.descriptionText);
+        addressView = (TextView) findViewById(R.id.addressText);
+        emailView = (TextView) findViewById(R.id.emailText);
+        phoneView = (TextView) findViewById(R.id.phoneText);
+
+        nameView.setText(genInfo.getName());
+        descriptionView.setText(genInfo.getDescription());
+        addressView.setText(genInfo.getStreet() + ", "  +genInfo.getCity());
+        emailView.setText(contact.mail);
+        phoneView.setText(contact.phone);
+
+    }
+
+    private void setNoRestaurantView(){
+        mContentView.removeAllViews();
+        View restaurantInfoView = getLayoutInflater().inflate(R.layout.no_restaurant_layout, null);
+        mContentView.addView(restaurantInfoView);
     }
 }

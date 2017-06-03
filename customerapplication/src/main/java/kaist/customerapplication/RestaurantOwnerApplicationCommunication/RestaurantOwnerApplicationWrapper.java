@@ -1,18 +1,50 @@
 package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 
 
+import kaist.customerapplication.CommonObjectManager;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
+import kaist.customerapplication.communicationmanager.CommunicationManager;
 
 public class RestaurantOwnerApplicationWrapper {
-    public RestaurantInfo getRestaurantInfo(){
+
+    private CommunicationManager communicationManager;
+    private RestaurantInfo restaurantInfo;
+
+    private String tableNumber;
+
+
+    public void setNewConnectionToRestaurant(CommunicationManager communicationManager, String tableNumber) {
+        this.communicationManager = communicationManager;
+        this.tableNumber = tableNumber;
+        restaurantInfo = null;
+    }
+
+    /**
+     *
+     * @return null if no restaurant info was found
+     */
+    public RestaurantInfo getRestaurantInfo() {
         //TODO: implement
+
+        //RestaurantInfo result;
+        // if(restaurantInfo == null){
+        //      result = RestaurantInfoJsonSerializer.deserialize(communicationManager.request(""));
+        //} else {
+        //      result = restaurantInfo;
+        //return result
+
         RestaurantInfo restaurantInfo = createRestaurantInfoDummy();
+        if(communicationManager==null){
+            restaurantInfo = null;
+        }
         return restaurantInfo;
     }
 
     public void orderFromMenu(Order order){
-
+        order.tableNumber = Integer.parseInt(this.tableNumber);
+        //int result = communicationManager.sendBleRequest(OrderJsonSerializer.serialize(order));
+        //TODO: implement
     }
 
     private RestaurantInfo createRestaurantInfoDummy() {
@@ -24,7 +56,8 @@ public class RestaurantOwnerApplicationWrapper {
     private final String EXAMPLE_JSON = "{\n" +
             "  \"info\": {\n" +
             "    \"name\": \"Gosomi Chicken\",\n" +
-            "    \"location\": \"21st Cool Street, Daejeon\",\n" +
+            "    \"street\": \"21st Cool Street\",\n" +
+            "    \"city\": \"Daejeon\",\n" +
             "    \"description\": \"Awesome fried chicken!\",\n" +
             "    \"contact\": {\n" +
             "      \"phone\": \"010-9999-9999\",\n" +

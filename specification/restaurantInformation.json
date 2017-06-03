@@ -1,7 +1,8 @@
 {
   "info": {
     "name": "Gosomi Chicken",
-    "location": "21st Cool Street, Daejeon",
+    "street": "21st Cool Street",
+    "city": "Daejeon",
     "description": "Awesome fried chicken!",
     "contact": {
       "phone": "010-9999-9999",

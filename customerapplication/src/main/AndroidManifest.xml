@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.kaist.antr.kaist">
 
+    <!-- @NFC: Add permissions for NFC -->
+    <uses-permission android:name="android.permission.NFC" />
+    <uses-sdk android:minSdkVersion="10"/>
+    <uses-feature android:name="android.hardware.nfc" android:required="true" />
+
+    <!-- @BLE: Add permissions for BLE -->
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -19,11 +29,20 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="kaist.customerapplication.views.MenuActivity"
+        <activity
+            android:name="kaist.customerapplication.views.MenuActivity"
             android:parentActivityName="kaist.customerapplication.views.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="kaist.customerapplication.views.MainActivity" />
+        </activity>
+        <activity android:name="kaist.customerapplication.views.ScanTagActivity"
+            android:parentActivityName="kaist.customerapplication.views.MainActivity">
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <data android:mimeType="application/smartorder" />
+            </intent-filter>
         </activity>
     </application>
 
