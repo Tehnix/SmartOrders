@@ -88,7 +88,7 @@ private CommunicationManager mCommunicationManager;
 
 @Override
 protected void onCreate(Bundle savedInstanceState) {
-    mCommunicationManager = CommunicationManager(this);
+    mCommunicationManager = new CommunicationManager(this);
 }
 ```
 
@@ -139,11 +139,13 @@ Note, that the `writeNfcTag` assumes you are also reading for NFC tags, since th
 File: `MainActivity` (or whichever file is your root activity)
 
 ```java
+@Override
 public void onPause() {
     super.onPause();
     mCommunicationManager.disableForegroundDispatch();
 }
 
+@Override
 public void onResume() {
     super.onResume();
     mCommunicationManager.enableForegroundDispatch();
