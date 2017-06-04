@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 
@@ -27,9 +28,21 @@ public class BleClient extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private Handler mHandler;
+
     private int mConnectionState = STATE_DISCONNECTED;
 
     private BluetoothGattCharacteristic mMenuCharacteristic;
+
+    private BluetoothGattCharacteristic mDataCharacteristic;
+
+    private final Charset UTF_8 = Charset.forName("UTF-8");
+
+    private String mMenuData = "";
+
+    private int mWriteChrcIndex = 0;
+
+    private String mOrderData = "";
 
     /*
      * Connection states.
@@ -45,13 +58,13 @@ public class BleClient extends Service {
             new BluetoothGattCallback() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                    Log.i("BleClient.mGattCall..", "onConnectionStateChange: Status = " + status);
                     try {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
                             mConnectionState = STATE_CONNECTED;
                             Log.i("BleClient.mGattCall..", "onConnectionStateChange: Connected to GATT server.");
                             Log.i("BleClient.mGattCall..", "onConnectionStateChange: Attempting to start service discovery");
-                            final Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
+                            mHandler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
                                     mBluetoothGatt.discoverServices();
@@ -86,6 +99,9 @@ public class BleClient extends Service {
                                     mMenuCharacteristic = characteristic;
                                     mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
                                 }
+                                if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
+                                    mDataCharacteristic = characteristic;
+                                }
                             }
                         } else {
                             Log.w("BleClient.mGattCall..", "onServicesDiscovered received: " + status);
@@ -96,12 +112,31 @@ public class BleClient extends Service {
                 }
 
                 @Override
-                // Result of a characteristic read operation
                 public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     try {
                         Log.i("BleClient.mGattCall..", "onCharacteristicRead status: " + status);
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGattCall..", "onCharacteristicRead: " + characteristic.toString());
+                            broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+
+                            final String data = new String(characteristic.getValue(), UTF_8);
+                            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                                Log.i("BleClient.mGattCall..", "onCharacteristicRead: Requesting next part!");
+                                mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                            }
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                    super.onCharacteristicWrite(gatt, characteristic, status);
+                    try {
+                        Log.i("BleClient.mGat..write", "onCharacteristicWrite status: " + status);
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
                         }
                     } catch (Exception e) {
@@ -120,10 +155,9 @@ public class BleClient extends Service {
                 }
             };
 
-
-
     public BleClient(Activity context) {
         mAppContext = context;
+        mHandler = new Handler();
     }
 
     /*
@@ -160,23 +194,81 @@ public class BleClient extends Service {
         // Check what type of characteristic has been received.
         Intent intent = new Intent(action);
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-            String data = characteristic.getStringValue(0);
-            Log.d("BleClient.broadca..", String.format("Received menu: %s", data));
-            intent.putExtra(BleManager.EXTRA_DATA, data);
-            mAppContext.sendBroadcast(intent);
+            final String data = new String(characteristic.getValue(), UTF_8);
+            Log.i("BleClient.broadca..", String.format("Building menu: %s", data));
+
+            // Check if we reached the end of the transmission.
+            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                mMenuData = mMenuData + data;
+            } else {
+                Log.e("BleClient.broadca..", String.format("Received full menu: %s", mMenuData));
+                intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
+                intent.putExtra(BleManager.EXTRA_DATA, mMenuData);
+                mAppContext.sendBroadcast(intent);
+
+                // Reset the menu data builder.
+                mMenuData = "";
+            }
         } else if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
-            final String data = characteristic.getStringValue(0);
-            Log.d("BleClient.broadca..", String.format("Received data: %s", data));
-            intent.putExtra(BleManager.EXTRA_DATA, data);
-            mAppContext.sendBroadcast(intent);
+            final String data = new String(characteristic.getValue(), UTF_8);
+            if (data.equals(BleManager.CONTINUE_TRANSMISSION)) {
+                // Continue sending the order data.
+                Log.d("BleClient.broadca..", String.format("Received data: %s", data));
+                Log.d("BleClient.broadca..", "Continuing order transmission");
+
+                byte[] orderData = mOrderData.getBytes(UTF_8);
+                byte[] request = new byte[20];
+                int requestIndex = 0;
+                if (mWriteChrcIndex >= orderData.length) {
+                    mDataCharacteristic.setValue(BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
+                    mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
+                    mWriteChrcIndex = 0;
+                } else {
+                    // Only go through one loop for each characteristic read request.
+                    for (; mWriteChrcIndex < orderData.length; mWriteChrcIndex++) {
+                        request[requestIndex] = orderData[mWriteChrcIndex];
+                        // Send a response every 20 bytes.
+                        if (requestIndex >= 19 || mWriteChrcIndex == (orderData.length - 1)) {
+                            // Fill the remaining response with spaces.
+                            if (requestIndex < 19) {
+                                requestIndex++;
+                                for (int i = requestIndex; i <= 19; i++) {
+                                    request[i] = " ".getBytes(UTF_8)[0];
+                                }
+                            }
+                            // Send the response.
+                            mDataCharacteristic.setValue(request);
+                            mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
+                            // Increment mWriteChrcIndex manually here, because it never reaches the end
+                            // the loop, where the increment happens.
+                            mWriteChrcIndex++;
+                            break;
+                        }
+                        requestIndex++;
+                    }
+                }
+                mDataCharacteristic.setValue(BleManager.START_TRANSMISSION.getBytes(UTF_8));
+                mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
+            } else {
+                // When the GATT server receives a BleManager.END_OF_TRANSMISSION, it responds with
+                // the order confirmation, meaning we can assume the result is here if it's not a
+                // continuation message.
+                Log.d("BleClient.broadca..", String.format("Received order confirmation: %s", data));
+                intent.putExtra("uuid", BleManager.UUID_SMARTORDER_DATA.toString());
+                intent.putExtra(BleManager.EXTRA_DATA, data);
+                mAppContext.sendBroadcast(intent);
+            }
         } else {
             Log.d("BleClient.broadca..", String.format("Received unknown data (from UUID %s)", characteristic.getUuid()));
         }
     }
 
     public boolean submitOrder(String order) {
-        if (mMenuCharacteristic != null && mBluetoothGatt != null) {
-            mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+        if (mDataCharacteristic != null && mBluetoothGatt != null) {
+            mOrderData = order;
+            // Initiate the order write request.
+            mDataCharacteristic.setValue(BleManager.START_TRANSMISSION.getBytes(UTF_8));
+            mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
             return true;
         }
         return false;

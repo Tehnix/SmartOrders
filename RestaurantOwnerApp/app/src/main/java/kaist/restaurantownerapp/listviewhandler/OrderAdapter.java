@@ -1,12 +1,15 @@
 package kaist.restaurantownerapp.listviewhandler;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.List;
@@ -18,7 +21,7 @@ import kaist.restaurantownerapp.R;
 
 public class OrderAdapter extends BaseAdapter{
     private DBConnector db;
-    private List<OrderItem> orders;
+    private List<OrderItemDB> orders;
     private Context context;
     private Intent detailTable;
 
@@ -79,14 +82,29 @@ public class OrderAdapter extends BaseAdapter{
         holder.menuItemName.setText("Dish: " + orders.get(position).getMenuItem().getName());
         holder.quantity.setText("Quantity: " + orders.get(position).getQuantity());
 
-        /*rowView.setOnClickListener(new OnClickListener() {
+        rowView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                // TODO Auto-generated method stub
-                detailTable.putExtra("id", tables.get(position).getTableNumber());
-                context.startActivity(detailTable);
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int choice) {
+                        switch (choice) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                db.deleteOrderItem(orders.get(position));
+                                break;
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                break;
+                        }
+                    }
+                };
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.mMainActivity);
+                builder.setMessage("Order served?")
+                        .setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener).show();
             }
-        });*/
+
+        });
         return rowView;
     }
 }

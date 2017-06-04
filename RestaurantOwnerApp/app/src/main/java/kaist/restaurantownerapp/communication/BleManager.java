@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -39,9 +40,9 @@ public class BleManager {
 
     private BleServer mBleServer;
 
-    private Handler mScanHandler = new Handler();
+    private ClientData mClientData;
 
-    private Handler mHandler;
+    private Handler mScanHandler = new Handler();
 
     private String mBleAddress = null;
 
@@ -50,6 +51,14 @@ public class BleManager {
     private boolean mIsConnected = false;
 
     private boolean mReceiverRegistered = false;
+
+    /*
+     * Transmission constants used to handle the state of the response and requests in the
+     * GATT server and client communication.
+     */
+    public static final String END_OF_TRANSMISSION = "!END!";
+    public static final String CONTINUE_TRANSMISSION = "!CONTINUE!";
+    public static final String START_TRANSMISSION = "!START!";
 
     /*
      * Data/intent identifiers.
@@ -84,12 +93,7 @@ public class BleManager {
                         Intent gattServiceIntent = new Intent(mAppContext, BleClient.class);
                         mAppContext.bindService(gattServiceIntent, mBleServiceConnection, mAppContext.BIND_AUTO_CREATE);
                         Log.i("BleManager.mBleScanCa..", "Connecting to device");
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mBleClient.connectToDevice(mAppContext, device);
-                            }
-                        });
+                        new ConnectToBle(device).execute();
                     }
                 }
             };
@@ -104,14 +108,21 @@ public class BleManager {
             if (BleManager.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Connected");
                 mIsConnected = true;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Disconnected");
                 mIsConnected = false;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 Log.i("BleManager.mGattUpdat..", mBleClient.getSupportedGattServices().toString());
             } else if (BleManager.ACTION_DATA_AVAILABLE.equals(action)) {
-                Log.i("BleManager.mGattUpdat..", intent.getStringExtra(BleManager.EXTRA_DATA));
+                Log.i("BleManager.mGattUpdat..", "Got data: " + intent.getStringExtra(BleManager.EXTRA_DATA));
+                if (BleManager.UUID_SMARTORDER_MENU.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleMenu(intent.getStringExtra(BleManager.EXTRA_DATA));
+                } else if (BleManager.UUID_SMARTORDER_DATA.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleOrderResponse(intent.getStringExtra(BleManager.EXTRA_DATA));
+                }
             }
         }
     };
@@ -138,7 +149,6 @@ public class BleManager {
         mBleManager = (BluetoothManager) mAppContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBleAdapter = mBleManager.getAdapter();
         mBleClient = new BleClient(mAppContext);
-        mHandler = new Handler(mAppContext.getMainLooper());
         checkBleEnabled();
     }
 
@@ -162,6 +172,7 @@ public class BleManager {
         if (!checkBleEnabled()) {
             return false;
         }
+        mClientData = clientData;
         // To scan for devices we also need to request coarse location permissions.
         if (ContextCompat.checkSelfPermission(mAppContext.getApplicationContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -256,17 +267,58 @@ public class BleManager {
      * Start a BLE GATT server that clients can connect to. Note that the server requires
      * at least Android SDK version 21.
      */
-    public boolean startBleServer(RestaurantData restaurantData) {
+    public boolean startBleServer(final RestaurantData restaurantData) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             if (!checkBleEnabled()) {
                 return false;
             }
             Log.d("BleManager.startBleSe..", "Starting BLE GATT server");
-            mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, restaurantData);
+            new StartBleServer(restaurantData) {
+                @Override
+                protected void onPostExecute(BleServer bleServer) {
+                    super.onPostExecute(bleServer);
+                    mBleServer = bleServer;
+                }
+            }.execute();
             return true;
         } else {
             Log.e("BleManager.startBleSe..", "SDK version is too low to start the BLE GATT server!");
         }
         return false;
+    }
+
+    private class StartBleServer extends AsyncTask<Void, Void, BleServer> {
+
+        private RestaurantData mRestaurantData;
+
+        public StartBleServer(RestaurantData restaurantData) {
+            mRestaurantData = restaurantData;
+        }
+
+        @Override
+        protected BleServer doInBackground(Void... params) {
+            mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, mRestaurantData);
+            return mBleServer;
+        }
+    }
+
+    private class ConnectToBle extends AsyncTask<Void, Void, Void> {
+
+        private BluetoothDevice mDevice;
+
+        public ConnectToBle(BluetoothDevice device) {
+            mDevice = device;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            mAppContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBleClient.connectToDevice(mAppContext, mDevice);
+                }
+            });
+            return null;
+        }
     }
 }

@@ -11,6 +11,8 @@ public class OrderItem {
         this.quantity = quantity;
     }
 
+    public OrderItem(){}
+
     public MenuItem getMenuItem() {
         return menuItem;
     }

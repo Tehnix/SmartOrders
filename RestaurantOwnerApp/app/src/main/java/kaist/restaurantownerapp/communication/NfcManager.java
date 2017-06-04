@@ -60,8 +60,8 @@ public class NfcManager {
      */
     private boolean checkNfcEnabled() {
         if (mNfcAdapter == null || !mNfcAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-            mAppContext.startActivityForResult(enableBtIntent, REQUEST_ENABLE_NFC);
+            Intent enableNfcIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+            mAppContext.startActivityForResult(enableNfcIntent, REQUEST_ENABLE_NFC);
             return false;
         }
         return true;
@@ -192,7 +192,7 @@ public class NfcManager {
             return Either.left("No NFC tag found!");
         }
         Log.d("NfcManager.writeNfcTag", "Preparing the NFC message");
-        NdefMessage message = prepareMessage(payload);
+        NdefMessage message = prepareMessageWithoutAAR(payload);
 
         // Connect to the NFC tag by trying different methods, in order: Ndef, NdefFormatable,
         // MifareUltralight and finally NfcA if all else fails. The last two only connect but

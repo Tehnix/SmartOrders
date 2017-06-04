@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
+import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
@@ -21,6 +22,7 @@ import kaist.restaurantownerapp.data.MenuEntry;
 import kaist.restaurantownerapp.data.MenuItem;
 import kaist.restaurantownerapp.data.Order;
 import kaist.restaurantownerapp.data.OrderItem;
+import kaist.restaurantownerapp.data.OrderItemDB;
 import kaist.restaurantownerapp.data.Table;
 import kaist.restaurantownerapp.listviewhandler.OrderAdapter;
 
@@ -60,6 +62,7 @@ public class DBConnector extends SQLiteOpenHelper{
 
     private HashMap hp;
 
+
     public DBConnector(Context context) {
 
         super(context, DATABASE_NAME , null, 29);
@@ -84,6 +87,7 @@ public class DBConnector extends SQLiteOpenHelper{
                     "CREATE TABLE IF NOT EXISTS menuitem " +
                             "(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, category TEXT NOT NULL,  description TEXT, price INTEGER NOT NULL)"
             );
+            generateMenuItems(db);
             db.execSQL(
                     "CREATE TABLE IF NOT EXISTS orders " +
                             "(id INTEGER PRIMARY KEY AUTOINCREMENT, tableid INTEGER, menuid INTEGER, number INTEGER NOT NULL, FOREIGN KEY(tableid) REFERENCES tables(id), FOREIGN KEY(menuid) REFERENCES menu(id))"
@@ -188,12 +192,12 @@ public class DBConnector extends SQLiteOpenHelper{
     public boolean generateDefaultRestaurantInfo(SQLiteDatabase db) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(RESTAURANT_COLUMN_ID, 0);
-        contentValues.put(RESTAURANT_COLUMN_NAME, "Name");
-        contentValues.put(RESTAURANT_COLUMN_STREET, "Street");
-        contentValues.put(RESTAURANT_COLUMN_CITY, "City");
-        contentValues.put(RESTAURANT_COLUMN_DESCRIPTION, "Description");
-        contentValues.put(RESTAURANT_COLUMN_PHONE, "Phone");
-        contentValues.put(RESTAURANT_COLUMN_EMAIL, "E-Mail");
+        contentValues.put(RESTAURANT_COLUMN_NAME, "NAmerican Burger");
+        contentValues.put(RESTAURANT_COLUMN_STREET, "Daehak-ro");
+        contentValues.put(RESTAURANT_COLUMN_CITY, "Daejeon");
+        contentValues.put(RESTAURANT_COLUMN_DESCRIPTION, "American Food");
+        contentValues.put(RESTAURANT_COLUMN_PHONE, "042-350-2114");
+        contentValues.put(RESTAURANT_COLUMN_EMAIL, "AmericanBurger@kaist.ac.kr");
         db.insert(RESTAURANT_TABLE_NAME, null, contentValues);
         return true;
     }
@@ -341,8 +345,16 @@ public class DBConnector extends SQLiteOpenHelper{
         return orderItem;
     }
 
-    public List<OrderItem> getOrderItems(){
-        List<OrderItem> orderList = new ArrayList<>();
+    // Deleting single menu item
+    public void deleteOrderItem(OrderItemDB item) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(ORDERS_TABLE_NAME, ORDERS_COLUMN_ID + " = ?",
+                new String[] { String.valueOf(item.getId())});
+        db.close();
+    }
+
+    public List<OrderItemDB> getOrderItems(){
+        List<OrderItemDB> orderList = new ArrayList<>();
 
         String selectQuery = "SELECT  * FROM " + ORDERS_TABLE_NAME;
 
@@ -352,8 +364,8 @@ public class DBConnector extends SQLiteOpenHelper{
         // looping through all rows and adding to list
         if (cursor.moveToFirst()) {
             do {
-                MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(0)));
-                OrderItem orderItem = new OrderItem(menuItem, Integer.parseInt(cursor.getString(1)), Integer.parseInt(cursor.getString(2)));
+                MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(1)));
+                OrderItemDB orderItem = new OrderItemDB(Integer.parseInt(cursor.getString(1)),menuItem, Integer.parseInt(cursor.getString(2)), Integer.parseInt(cursor.getString(3)));
                 // Adding contact to list
                 orderList.add(orderItem);
             } while (cursor.moveToNext());
@@ -361,17 +373,26 @@ public class DBConnector extends SQLiteOpenHelper{
         return orderList;
     }
 
-    public void generateMenuItems(){
-        addMenuItem(new MenuItem("Tender Crispy Chicken", "main dish", "Very tender chicken", 9000.00));
-        addMenuItem(new MenuItem("Hot Chicken", "main dish", "Careful! Quite hot chicken", 12000.00));
-        addMenuItem(new MenuItem("Steak", "main dish", "A nice well seasoned steak", 15000.00));
-        addMenuItem(new MenuItem("Coca Cola", "beverage", "sweet soda", 500.00));
-        addMenuItem(new MenuItem("Pepsi", "beverage", "sweet soda", 600.00));
-        addMenuItem(new MenuItem("Cass Beer", "beverage", "beer", 3000.00));
-        addMenuItem(new MenuItem("Soju", "beverage", "spirit", 500.00));
-        addMenuItem(new MenuItem("Pommes Frites", "side dish", "Crispy oven made fries", 4500.00));
-        addMenuItem(new MenuItem("Ketchup", "side dish", "", 100.00));
-        addMenuItem(new MenuItem("Mustard", "side dish", "", 100.00));
-
+    public void generateMenuItems(SQLiteDatabase db){
+        addGeneratedMenuItem(db, new MenuItem("Tender Crispy Chicken", "main dish", "Very tender chicken", 9000.00));
+        addGeneratedMenuItem(db,new MenuItem("Hot Chicken", "main dish", "Careful! Quite hot chicken", 12000.00));
+        addGeneratedMenuItem(db,new MenuItem("Steak", "main dish", "A nice well seasoned steak", 15000.00));
+        addGeneratedMenuItem(db,new MenuItem("Coca Cola", "beverage", "sweet soda", 500.00));
+        addGeneratedMenuItem(db,new MenuItem("Pepsi", "beverage", "sweet soda", 600.00));
+        addGeneratedMenuItem(db,new MenuItem("Cass Beer", "beverage", "beer", 3000.00));
+        addGeneratedMenuItem(db,new MenuItem("Soju", "beverage", "spirit", 500.00));
+        addGeneratedMenuItem(db,new MenuItem("Pommes Frites", "side dish", "Crispy oven made fries", 4500.00));
+        addGeneratedMenuItem(db,new MenuItem("Ketchup", "side dish", "", 100.00));
+        addGeneratedMenuItem(db,new MenuItem("Mustard", "side dish", "", 100.00));
     }
+
+    private void addGeneratedMenuItem(SQLiteDatabase db, MenuItem item){
+        ContentValues contentValues = new ContentValues();
+        contentValues.put(MENU_COLUMN_NAME, item.getName());
+        contentValues.put(MENU_COLUMN_CATEGORY, item.getCategory());
+        contentValues.put(MENU_COLUMN_DESCRIPTION, item.getDescription());
+        contentValues.put(MENU_COLUMN_PRICE, item.getPrice());
+        db.insert(MENU_TABLE_NAME, null, contentValues);
+    }
+
 }

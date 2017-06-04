@@ -1,7 +1,10 @@
 package kaist.restaurantownerapp.views;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -68,13 +71,16 @@ public class MainActivity extends AppCompatActivity
 
     private CommunicationManager mCommunicationManager;
 
+    public static MainActivity mMainActivity;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mMainActivity = this;
+
         db = new DBConnector(this);
-        db.generateMenuItems();
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -248,26 +254,47 @@ public class MainActivity extends AppCompatActivity
         info.setMenu(menu);
 
         String json = RestaurantInfoJsonSerializer.serialize(info);
-
+        Log.i("Menu: ", json);
         return json;
     }
 
     @Override
-    public boolean handleOrder(String json) {
+    public String handleOrder(String json) {
         Log.i("DeliciousData.handle..", "Received order: " + json);
 
         Order order = OrderJsonSerializer.deserialize(json);
 
         List<OrderItem> orderList = order.getOrderItems();
 
+        int tableNumber = order.getTableNumber();
+
         for (OrderItem i : orderList) {
             db.addOrder(i);
         }
 
         Toast.makeText(getApplicationContext(), "New Order!", Toast.LENGTH_SHORT).show();
-        
+
         updateOrders();
-        return true;
+
+        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int choice) {
+                switch (choice) {
+                    case DialogInterface.BUTTON_POSITIVE:
+                        currentContent = ContentState.ORDERS;
+                        fab.setVisibility(View.VISIBLE);
+                        vf.setDisplayedChild(0);
+                        break;
+                    case DialogInterface.BUTTON_NEGATIVE:
+                        break;
+                }
+            }
+        };
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setMessage("New Order from Table " + tableNumber)
+                .setPositiveButton("Show", dialogClickListener)
+                .setNegativeButton("Cancle", dialogClickListener).show();
+        return "Order accepted";
     }
 
     @Override
