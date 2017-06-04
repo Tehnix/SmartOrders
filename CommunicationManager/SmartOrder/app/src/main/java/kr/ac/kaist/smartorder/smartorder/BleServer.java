@@ -33,7 +33,9 @@ public class BleServer {
 
     private RestaurantData mRestaurantData;
 
-    private int mStartIndex = 0;
+    private int mReadChrcIndex = 0;
+
+    private String mWriteChrcOrder = "";
 
     private final Charset UTF_8 = Charset.forName("UTF-8");
 
@@ -89,25 +91,25 @@ public class BleServer {
 
             // Respond with the menu if it is a read request for that.
             if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-                if (mStartIndex == 0) {
-                    Log.e("BleServer.onCha..Read..", "Respond with menu");
+                if (mReadChrcIndex == 0) {
+                    Log.e("BleServer.onCha..Read..", "Responding with menu");
                 }
                 byte[] menuResponse = mRestaurantData.getMenu().getBytes(UTF_8);
                 byte[] response = new byte[20];
                 int responseIndex = 0;
-                if (mStartIndex >= menuResponse.length) {
+                if (mReadChrcIndex >= menuResponse.length) {
                     mBleGattServer.sendResponse(device,
                             requestId,
                             BluetoothGatt.GATT_SUCCESS,
                             0,
                             BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
-                    mStartIndex = 0;
+                    mReadChrcIndex = 0;
                 } else {
                     // Only go through one loop for each characteristic read request.
-                    for (; mStartIndex < menuResponse.length; mStartIndex++) {
-                        response[responseIndex] = menuResponse[mStartIndex];
+                    for (; mReadChrcIndex < menuResponse.length; mReadChrcIndex++) {
+                        response[responseIndex] = menuResponse[mReadChrcIndex];
                         // Send a response every 20 bytes.
-                        if (responseIndex >= 19 || mStartIndex == (menuResponse.length - 1)) {
+                        if (responseIndex >= 19 || mReadChrcIndex == (menuResponse.length - 1)) {
                             // Fill the remaining response with spaces.
                             if (responseIndex < 19) {
                                 responseIndex++;
@@ -121,15 +123,16 @@ public class BleServer {
                                     BluetoothGatt.GATT_SUCCESS,
                                     0,
                                     response);
-                            // Increment mStartIndex manually here, because it never reaches the end
+                            // Increment mReadChrcIndex manually here, because it never reaches the end
                             // the loop, where the increment happens.
-                            mStartIndex++;
+                            mReadChrcIndex++;
                             break;
                         }
                         responseIndex++;
                     }
                 }
             } else {
+                // We don't know the requested characteristic, so return an error.
                 mBleGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,
@@ -149,21 +152,39 @@ public class BleServer {
             if (!responseNeeded) {
                 return;
             }
+
             // Respond with the response to an order if it is a write request for that.
             if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
-                Log.e("BleServer.onCh..Write..", "Accept order");
+                if (decodedValue.equals(BleManager.START_TRANSMISSION)) {
+                    // Indicate that the server is ready for the next part of the response.
+                    mBleGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            BleManager.CONTINUE_TRANSMISSION.getBytes(UTF_8));
+                } else if (!decodedValue.equals(BleManager.END_OF_TRANSMISSION)) {
+                    mWriteChrcOrder = mWriteChrcOrder + decodedValue;
+                    Log.i("BleServer.onCh..Write..", "Building order: " + decodedValue);
+                    // Indicate that the server is ready for the next part of the response.
+                    mBleGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            BleManager.CONTINUE_TRANSMISSION.getBytes(UTF_8));
+                } else {
+                    Log.e("BleServer.onCh..Write..", "Got full order: " + mWriteChrcOrder);
+                    String orderResponse = mRestaurantData.handleOrder(mWriteChrcOrder);
+                    mBleGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            orderResponse.getBytes(UTF_8));
 
-                boolean orderStatus = mRestaurantData.handleOrder(decodedValue);
-                String orderResponse = "Invalid order!";
-                if (orderStatus) {
-                    orderResponse = "Order received!";
+                    // Reset the order data builder.
+                    mWriteChrcOrder = "";
                 }
-                mBleGattServer.sendResponse(device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        orderResponse.getBytes(UTF_8));
             } else {
+                // We don't know the requested characteristic, so return an error.
                 mBleGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_FAILURE,

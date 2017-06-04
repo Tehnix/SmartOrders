@@ -60,8 +60,8 @@ public class NfcManager {
      */
     private boolean checkNfcEnabled() {
         if (mNfcAdapter == null || !mNfcAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
-            mAppContext.startActivityForResult(enableBtIntent, REQUEST_ENABLE_NFC);
+            Intent enableNfcIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+            mAppContext.startActivityForResult(enableNfcIntent, REQUEST_ENABLE_NFC);
             return false;
         }
         return true;

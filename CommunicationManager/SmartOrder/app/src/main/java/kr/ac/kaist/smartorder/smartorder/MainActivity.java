@@ -227,9 +227,9 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public boolean handleOrder(String order) {
+        public String handleOrder(String order) {
             Log.i("DeliciousData.handle..", "Received order: " + order);
-            return true;
+            return "Order accepted!";
         }
     }
 

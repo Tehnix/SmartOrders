@@ -5,6 +5,6 @@ public interface RestaurantData {
 
     public String getMenu();
 
-    public boolean handleOrder(String order);
+    public String handleOrder(String order);
 
 }

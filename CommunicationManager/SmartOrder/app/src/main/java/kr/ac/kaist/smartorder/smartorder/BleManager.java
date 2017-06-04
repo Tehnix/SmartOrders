@@ -30,8 +30,6 @@ public class BleManager {
 
     private static final long BLE_SCAN_PERIOD = 12000;
 
-    public static final String END_OF_TRANSMISSION = "!END!";
-
     private Activity mAppContext;
 
     private BluetoothManager mBleManager;
@@ -53,6 +51,14 @@ public class BleManager {
     private boolean mIsConnected = false;
 
     private boolean mReceiverRegistered = false;
+
+    /*
+     * Transmission constants used to handle the state of the response and requests in the
+     * GATT server and client communication.
+     */
+    public static final String END_OF_TRANSMISSION = "!END!";
+    public static final String CONTINUE_TRANSMISSION = "!CONTINUE!";
+    public static final String START_TRANSMISSION = "!START!";
 
     /*
      * Data/intent identifiers.
