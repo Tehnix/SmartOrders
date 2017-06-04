@@ -117,6 +117,12 @@ public class BleClient extends Service {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGattCall..", "onCharacteristicRead: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+
+                            final String data = new String(characteristic.getValue(), UTF_8);
+                            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                                Log.i("BleClient.mGattCall..", "onCharacteristicRead: Requesting next part!");
+                                mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -131,10 +137,6 @@ public class BleClient extends Service {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
-                            final String data = new String(characteristic.getValue(), UTF_8);
-                            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
-                                mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
-                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
