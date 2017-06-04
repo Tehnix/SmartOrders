@@ -27,7 +27,7 @@ public class Order {
         if(menuItemIndex>=0){
             orderItem = orderItems.get(menuItemIndex);
         }else{
-            orderItem = new OrderItem(menuItem);
+            orderItem = new OrderItem(menuItem, tableNumber);
             orderItems.add(orderItem);
         }
         return orderItem.addQuantity();

@@ -1,5 +1,6 @@
 package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -47,6 +48,20 @@ public class JsonConverterUnitTest {
 
     }
 
+    @Ignore
+    @Test
+    public void canDeserializeOrderFromJson() throws Exception {
+        Order order = OrderJsonSerializer.deserialize(TestJsonData.EXAMPLE_JSON_ORDER);
+        assertTrue(true);
+    }
+
+    @Ignore
+    @Test
+    public void canDeserializeInfoFromJson() throws Exception {
+        RestaurantInfo resInfo = RestaurantInfoJsonSerializer.deserialize(TestJsonData.EXAMPLE_JSON_INFO);
+        assertTrue(true);
+    }
+
     private Menu generateExpectedMenuOutput(){
         Menu menu = new Menu();
         MenuEntry entry = new MenuEntry();
@@ -72,11 +87,7 @@ public class JsonConverterUnitTest {
     }
 
     private GeneralInfo createInfo() {
-        GeneralInfo info = new GeneralInfo();
-        info.name ="Gosomi Chicken";
-        info.location ="21st Cool Street, Daejeon";
-        info.description ="Awesome fried chicken!";
-        info.contact = createContactInfo();
+        GeneralInfo info = new GeneralInfo("Gosomi Chicken", "21st Cool Street", "Daejeon", "Awesome fried chicken!", createContactInfo());
         return info;
     }
 
@@ -129,8 +140,134 @@ public class JsonConverterUnitTest {
 
 
     private static class TestJsonData{
-        public final static String EXAMPLE_JSON_INFO = "{\"info\":{\"name\":\"Gosomi Chicken\",\"location\":\"21st Cool Street, Daejeon\",\"description\":\"Awesome fried chicken!\",\"contact\":{\"phone\":\"010-9999-9999\",\"mail\":\"chicken@example.com\"}},\"menu\":{\"menuCategories\":[{\"name\":\"food\",\"menuItems\":[{\"id\":12,\"name\":\"Tender Crispy Chicken\",\"price\":9000.0,\"description\":\"Very tender chicken\"},{\"id\":13,\"name\":\"Hot Chicken\",\"price\":12000.0,\"description\":\"Careful! Quite hot chicken\"},{\"id\":14,\"name\":\"Steak\",\"price\":15000.0,\"description\":\"A nice well seasoned steak\"}]},{\"name\":\"beverage\",\"menuItems\":[{\"id\":15,\"name\":\"Coca Cola\",\"price\":500.0,\"description\":\"\"},{\"id\":16,\"name\":\"Pepsi\",\"price\":600.0,\"description\":\"\"},{\"id\":17,\"name\":\"Cass Beer\",\"price\":3000.0,\"description\":\"Good for stamina!\"},{\"id\":18,\"name\":\"Soju\",\"price\":3000.0,\"description\":\"Very refreshing!\"}]},{\"name\":\"Side-dishes\",\"menuItems\":[{\"id\":19,\"name\":\"Pommes Frites\",\"price\":4500.0,\"description\":\"Crispy oven made fries\"},{\"id\":17,\"name\":\"Ketchup\",\"price\":100.0,\"description\":\"\"},{\"id\":17,\"name\":\"Mustard\",\"price\":100.0,\"description\":\"\"}]}]}}";
-        public final static String EXAMPLE_JSON_ORDER = "{\"tableNumber\":25,\"orderItems\":[{\"menuItem\":{\"id\":12,\"name\":\"Tender Crispy Chicken\",\"price\":9000.0,\"description\":\"Very tender chicken\"},\"quantity\":2},{\"menuItem\":{\"id\":13,\"name\":\"Hot Chicken\",\"price\":12000.0,\"description\":\"Careful! Quite hot chicken\"},\"quantity\":1}]}";
+        public final static String EXAMPLE_JSON_INFO = "{\n" +
+                "  \"info\": {\n" +
+                "    \"name\": \"Gosomi Chicken\",\n" +
+                "    \"street\": \"21st Cool Street\",\n" +
+                "    \"city\": \"Daejeon\",\n" +
+                "    \"description\": \"Awesome fried chicken!\",\n" +
+                "    \"contact\": {\n" +
+                "      \"phone\": \"010-9999-9999\",\n" +
+                "      \"mail\": \"chicken@example.com\"\n" +
+                "    }\n" +
+                "  },\n" +
+                "  \"menu\": {\n" +
+                "    \"menuCategories\": [\n" +
+                "      {\n" +
+                "        \"name\": \"Main-dishes\",\n" +
+                "        \"menuItems\": [\n" +
+                "          {\n" +
+                "            \"id\": 12,\n" +
+                "            \"category\": \"Main-dishes\",\n" +
+                "            \"name\": \"Tender Crispy Chicken\",\n" +
+                "            \"price\": 9000.00,\n" +
+                "            \"description\": \"Very tender chicken\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 13,\n" +
+                "            \"category\": \"Main-dishes\",\n" +
+                "            \"name\": \"Hot Chicken\",\n" +
+                "            \"price\": 12000.00,\n" +
+                "            \"description\": \"Careful! Quite hot chicken\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 14,\n" +
+                "            \"category\": \"Main-dishes\",\n" +
+                "            \"name\": \"Steak\",\n" +
+                "            \"price\": 15000.00,\n" +
+                "            \"description\": \"A nice well seasoned steak\"\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": \"beverage\",\n" +
+                "        \"menuItems\": [\n" +
+                "          {\n" +
+                "            \"id\": 15,\n" +
+                "            \"category:\": \"beverage\",\n" +
+                "            \"name\": \"Coca Cola\",\n" +
+                "            \"price\": 500.00,\n" +
+                "            \"description\": \"\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 16,\n" +
+                "            \"category:\": \"beverage\",\n" +
+                "            \"name\": \"Pepsi\",\n" +
+                "            \"price\": 600.00,\n" +
+                "            \"description\": \"\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 17,\n" +
+                "            \"category:\": \"beverage\",\n" +
+                "            \"name\": \"Cass Beer\",\n" +
+                "            \"price\": 3000.00,\n" +
+                "            \"description\": \"Good for stamina!\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 18,\n" +
+                "            \"category:\": \"beverage\",\n" +
+                "            \"name\": \"Soju\",\n" +
+                "            \"price\": 3000.00,\n" +
+                "            \"description\": \"Very refreshing!\"\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      },\n" +
+                "      {\n" +
+                "        \"name\": \"Side-dishes\",\n" +
+                "        \"menuItems\": [\n" +
+                "          {\n" +
+                "            \"id\": 19,\n" +
+                "            \"category\": \"Side-dishes\",\n" +
+                "            \"name\": \"Pommes Frites\",\n" +
+                "            \"price\": 4500.00,\n" +
+                "            \"description\": \"Crispy oven made fries\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 17,\n" +
+                "            \"category\": \"Side-dishes\",\n" +
+                "            \"name\": \"Ketchup\",\n" +
+                "            \"price\": 100.00,\n" +
+                "            \"description\": \"\"\n" +
+                "          },\n" +
+                "          {\n" +
+                "            \"id\": 17,\n" +
+                "            \"category\": \"Side-dishes\",\n" +
+                "            \"name\": \"Mustard\",\n" +
+                "            \"price\": 100.00,\n" +
+                "            \"description\": \"\"\n" +
+                "          }\n" +
+                "        ]\n" +
+                "      }\n" +
+                "    ]\n" +
+                "  }\n" +
+                "}";
+        public final static String EXAMPLE_JSON_ORDER = "{\n" +
+                "  \"tableNumber\": 25,\n" +
+                "  \"orderItems\": [\n" +
+                "    { \n" +
+                "      \"tableNumber\": 1,\n" +
+                "      \"menuItem\": {\n" +
+                "        \"id\": 12,\n" +
+                "        \"category\": \"Main-dishes\",\n" +
+                "        \"name\": \"Tender Crispy Chicken\",\n" +
+                "        \"price\": 9000.00,\n" +
+                "        \"description\": \"Very tender chicken\"\n" +
+                "      },\n" +
+                "      \"quantity\": 2\n" +
+                "    },\n" +
+                "    {\n" +
+                "      \"tableNumber\": 2,\n" +
+                "      \"menuItem\": {\n" +
+                "        \"id\": 13,\n" +
+                "        \"category\": \"Main-dishes\",\n" +
+                "        \"name\": \"Hot Chicken\",\n" +
+                "        \"price\": 12000.00,\n" +
+                "        \"description\": \"Careful! Quite hot chicken\"\n" +
+                "      },\n" +
+                "      \"quantity\": 1\n" +
+                "    }\n" +
+                "  ]\n" +
+                "}";
     }
 
 

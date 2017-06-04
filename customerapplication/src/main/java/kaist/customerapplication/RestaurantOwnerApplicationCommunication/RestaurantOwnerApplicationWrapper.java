@@ -4,14 +4,18 @@ package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 import kaist.customerapplication.CommonObjectManager;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
+import kaist.customerapplication.communicationmanager.ClientData;
 import kaist.customerapplication.communicationmanager.CommunicationManager;
+import kaist.customerapplication.views.MenuActivity;
 
-public class RestaurantOwnerApplicationWrapper {
+public class RestaurantOwnerApplicationWrapper implements ClientData {
 
     private CommunicationManager communicationManager;
     private RestaurantInfo restaurantInfo;
 
     private String tableNumber;
+
+    MenuActivity menuActivityReference;
 
 
     public void setNewConnectionToRestaurant(CommunicationManager communicationManager, String tableNumber) {
@@ -41,15 +45,31 @@ public class RestaurantOwnerApplicationWrapper {
         return restaurantInfo;
     }
 
-    public void orderFromMenu(Order order){
+    public void orderFromMenu(Order order, MenuActivity menuActivity) throws Exception {
+        menuActivityReference = menuActivity;
         order.tableNumber = Integer.parseInt(this.tableNumber);
-        //int result = communicationManager.sendBleRequest(OrderJsonSerializer.serialize(order));
-        //TODO: implement
+        String orderJson = OrderJsonSerializer.serialize(order);
+        boolean result = communicationManager.submitOrder(orderJson);
+        if(!result){
+            throw new Exception("communication returned false...");
+        }
+
     }
 
     private RestaurantInfo createRestaurantInfoDummy() {
         RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(EXAMPLE_JSON);
         return restaurantInfo;
+    }
+
+    @Override
+    public void handleMenu(String menu) {
+        RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
+        this.restaurantInfo = restaurantInfo;
+    }
+
+    @Override
+    public void handleOrderResponse(boolean success, String msg) {
+        menuActivityReference.placeOrderSuccess();
     }
 
 

@@ -55,7 +55,7 @@ public class ScanTagActivity extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         if(scanning){
-            Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent);
+            Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent, CommonObjectManager.restaurantOwnerApplicationWrapper);
             if (nfcMessage.isRight()) {
                 mNfcMessage = nfcMessage.right();
                 Toast.makeText(this, "Restaurant chip detected", Toast.LENGTH_SHORT).show();
@@ -89,7 +89,7 @@ public class ScanTagActivity extends AppCompatActivity {
     @Override
     public void onPause() {
         super.onPause();
-        mCommunicationManager.disableForegroundDispatch();
+        mCommunicationManager.handlePause();
     }
 
     /*
@@ -99,7 +99,13 @@ public class ScanTagActivity extends AppCompatActivity {
     @Override
     public void onResume() {
         super.onResume();
-        mCommunicationManager.enableForegroundDispatch();
+        mCommunicationManager.handleResume();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mCommunicationManager.handleDestroy();
     }
 
     private void goBackToMainActivity() {
