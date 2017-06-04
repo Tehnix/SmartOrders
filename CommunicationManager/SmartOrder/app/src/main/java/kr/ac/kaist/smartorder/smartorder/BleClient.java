@@ -147,7 +147,7 @@ public class BleClient extends Service {
                                 final String data = new String(characteristic.getValue(), UTF_8);
                                 if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
                                     Log.i("BleClient.mGat..write", "onCharacteristicWrite: Sending next part of order!");
-                                    mBluetoothGatt.readCharacteristic(mDataCharacteristic);
+                                    broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
                                 }
                             }
                         }  else {
@@ -224,7 +224,7 @@ public class BleClient extends Service {
             }
         } else if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
             final String data = new String(characteristic.getValue(), UTF_8);
-            if (data.equals(BleManager.CONTINUE_TRANSMISSION)) {
+            if (data.equals(BleManager.CONTINUE_TRANSMISSION) || data.equals(BleManager.START_TRANSMISSION)) {
                 // Continue sending the order data.
                 Log.d("BleClient.broadca..", String.format("Received data: %s", data));
                 Log.d("BleClient.broadca..", "Continuing order transmission");
