@@ -110,9 +110,14 @@ public class BleServer {
                     mBleGattServer.sendResponse(device,
                             requestId,
                             BluetoothGatt.GATT_SUCCESS,
-                            0,
+                            responseOffset,
                             response);
                 }
+                //mBleGattServer.sendResponse(device,
+                //        requestId,
+                //        BluetoothGatt.GATT_SUCCESS,
+                //        responseOffset++,
+                //        response);
             } else {
                 mBleGattServer.sendResponse(device,
                         requestId,
