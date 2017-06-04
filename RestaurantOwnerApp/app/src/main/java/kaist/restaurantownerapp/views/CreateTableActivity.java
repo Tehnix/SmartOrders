@@ -115,12 +115,12 @@ public class CreateTableActivity extends AppCompatActivity{
     @Override
     public void onPause() {
         super.onPause();
-        mCommunicationManager.disableForegroundDispatch();
+        mCommunicationManager.handlePause();
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        mCommunicationManager.enableForegroundDispatch();
+        mCommunicationManager.handleResume();
     }
 }
