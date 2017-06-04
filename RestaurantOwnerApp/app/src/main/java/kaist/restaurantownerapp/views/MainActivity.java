@@ -14,21 +14,26 @@ import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ViewFlipper;
 import android.content.Intent;
 import android.widget.ExpandableListView;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import kaist.restaurantownerapp.R;
-import kaist.restaurantownerapp.communication.CommunicationManager;
-import kaist.restaurantownerapp.communication.Either;
+import kaist.restaurantownerapp.communication.*;
 import kaist.restaurantownerapp.data.*;
 import kaist.restaurantownerapp.data.handler.DBConnector;
+import kaist.restaurantownerapp.data.handler.OrderJsonSerializer;
+import kaist.restaurantownerapp.data.handler.RestaurantInfoJsonSerializer;
 import kaist.restaurantownerapp.listviewhandler.MenuAdapter;
 import kaist.restaurantownerapp.listviewhandler.OrderAdapter;
 import kaist.restaurantownerapp.listviewhandler.TableAdapter;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, RestaurantData {
 
     private ViewFlipper vf;
     private ListView tableListView;
@@ -60,6 +65,8 @@ public class MainActivity extends AppCompatActivity
 
     private ExpandableListView menuListView;
     public static MenuAdapter menuAdapter;
+
+    private CommunicationManager mCommunicationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +119,7 @@ public class MainActivity extends AppCompatActivity
         initContentSettings();
         initMenuList();
         initOrderList();
+        initCommunicationManager();
     }
 
     @Override
@@ -224,5 +232,59 @@ public class MainActivity extends AppCompatActivity
         orderListView = (ListView) findViewById(R.id.orderListView);
         orderAdapter = new OrderAdapter(this);
         orderListView.setAdapter(orderAdapter);
+    }
+
+    private void initCommunicationManager(){
+        mCommunicationManager = new CommunicationManager(this);
+        mCommunicationManager.startBleServer(this);
+    }
+
+    @Override
+    public String getMenu() {
+        RestaurantInfo info = new RestaurantInfo();
+        Menu menu = db.getMenu();
+        GeneralInfo general = db.getRestaurantInfo();
+        info.setInfo(general);
+        info.setMenu(menu);
+
+        String json = RestaurantInfoJsonSerializer.serialize(info);
+
+        return json;
+    }
+
+    @Override
+    public boolean handleOrder(String json) {
+        Log.i("DeliciousData.handle..", "Received order: " + json);
+
+        Order order = OrderJsonSerializer.deserialize(json);
+
+        List<OrderItem> orderList = order.getOrderItems();
+
+        for (OrderItem i : orderList) {
+            db.addOrder(i);
+        }
+
+        Toast.makeText(getApplicationContext(), "New Order!", Toast.LENGTH_SHORT).show();
+        
+        updateOrders();
+        return true;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mCommunicationManager.handleDestroy();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mCommunicationManager.handlePause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mCommunicationManager.handleResume();
     }
 }
