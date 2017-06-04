@@ -183,13 +183,13 @@ public class BleClient extends Service {
         // Check what type of characteristic has been received.
         Intent intent = new Intent(action);
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-            String data = characteristic.getStringValue(0);
+            final String data = new String(characteristic.getValue(), UTF_8);
             Log.d("BleClient.broadca..", String.format("Received menu: %s", data));
             intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
             intent.putExtra(BleManager.EXTRA_DATA, data);
             mAppContext.sendBroadcast(intent);
         } else if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
-            final String data = characteristic.getStringValue(0);
+            final String data = new String(characteristic.getValue(), UTF_8);
             Log.d("BleClient.broadca..", String.format("Received data: %s", data));
             intent.putExtra("uuid", BleManager.UUID_SMARTORDER_DATA.toString());
             intent.putExtra(BleManager.EXTRA_DATA, data);

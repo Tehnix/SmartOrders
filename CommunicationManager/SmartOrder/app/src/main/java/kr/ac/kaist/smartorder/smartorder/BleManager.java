@@ -304,7 +304,12 @@ public class BleManager {
 
         @Override
         protected Void doInBackground(Void... params) {
-            mBleClient.connectToDevice(mAppContext, mDevice);
+            mAppContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBleClient.connectToDevice(mAppContext, mDevice);
+                }
+            });
             return null;
         }
     }
