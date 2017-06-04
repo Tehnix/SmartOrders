@@ -38,6 +38,10 @@ public class BleClient extends Service {
 
     private final Charset UTF_8 = Charset.forName("UTF-8");
 
+    private int characteristicReadOffset = 0;
+
+    private String mMenuData = "";
+
     /*
      * Connection states.
      */
@@ -127,6 +131,10 @@ public class BleClient extends Service {
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+                            final String data = new String(characteristic.getValue(), UTF_8);
+                            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                                mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -183,11 +191,22 @@ public class BleClient extends Service {
         // Check what type of characteristic has been received.
         Intent intent = new Intent(action);
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-            final String data = new String(characteristic.getValue(), UTF_8);
-            Log.d("BleClient.broadca..", String.format("Received menu: %s", data));
-            intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
-            intent.putExtra(BleManager.EXTRA_DATA, data);
-            mAppContext.sendBroadcast(intent);
+            final String data = characteristic.getStringValue(characteristicReadOffset);
+            characteristicReadOffset++;
+            mMenuData = mMenuData + data;
+            Log.d("BleClient.broadca..", String.format("Building menu: %s", data));
+
+            // Check if we reached the end of the transmission.
+            if (data.equals(BleManager.END_OF_TRANSMISSION)) {
+                Log.d("BleClient.broadca..", String.format("Received full menu: %s", mMenuData));
+                intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
+                intent.putExtra(BleManager.EXTRA_DATA, mMenuData);
+                mAppContext.sendBroadcast(intent);
+
+                // Reset the menu data builder.
+                mMenuData = "";
+                characteristicReadOffset = 0;
+            }
         } else if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
             final String data = new String(characteristic.getValue(), UTF_8);
             Log.d("BleClient.broadca..", String.format("Received data: %s", data));

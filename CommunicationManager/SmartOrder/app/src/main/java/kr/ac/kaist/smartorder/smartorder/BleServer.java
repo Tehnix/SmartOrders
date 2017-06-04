@@ -113,11 +113,11 @@ public class BleServer {
                             responseOffset,
                             response);
                 }
-                //mBleGattServer.sendResponse(device,
-                //        requestId,
-                //        BluetoothGatt.GATT_SUCCESS,
-                //        responseOffset++,
-                //        response);
+                mBleGattServer.sendResponse(device,
+                        requestId,
+                        BluetoothGatt.GATT_SUCCESS,
+                        responseOffset++,
+                        BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
             } else {
                 mBleGattServer.sendResponse(device,
                         requestId,

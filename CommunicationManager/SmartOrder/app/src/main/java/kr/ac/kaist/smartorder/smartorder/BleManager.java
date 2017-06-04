@@ -30,6 +30,8 @@ public class BleManager {
 
     private static final long BLE_SCAN_PERIOD = 12000;
 
+    public static final String END_OF_TRANSMISSION = "!END!";
+
     private Activity mAppContext;
 
     private BluetoothManager mBleManager;
