@@ -26,11 +26,15 @@ public class BleClient extends Service {
 
     private BluetoothGatt mBluetoothGatt;
 
+    private Context mContext;
+
+    private BluetoothDevice mDevice;
+
     private final IBinder mBinder = new LocalBinder();
 
     private Handler mHandler;
 
-    private int mConnectionState = STATE_DISCONNECTED;
+    private int mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
 
     private BluetoothGattCharacteristic mMenuCharacteristic;
 
@@ -47,13 +51,6 @@ public class BleClient extends Service {
     private boolean mMenuReceived = false;
 
     /*
-     * Connection states.
-     */
-    private static final int STATE_DISCONNECTED = 0;
-    private static final int STATE_CONNECTING = 1;
-    private static final int STATE_CONNECTED = 2;
-
-    /*
      * Handle BLE GATT Callbacks on the client side of the connection.
      */
     private final BluetoothGattCallback mGattCallback =
@@ -63,7 +60,7 @@ public class BleClient extends Service {
                     Log.i("BleClient.mGat..Conn", "onConnectionStateChange: Status = " + status);
                     try {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
-                            mConnectionState = STATE_CONNECTED;
+                            mConnectionState = BluetoothProfile.STATE_CONNECTED;
                             Log.i("BleClient.mGat..Conn", "onConnectionStateChange: Connected to GATT server.");
                             Log.i("BleClient.mGat..Conn", "onConnectionStateChange: Attempting to start service discovery");
                             mHandler.postDelayed(new Runnable() {
@@ -75,9 +72,11 @@ public class BleClient extends Service {
                             mBluetoothGatt.discoverServices();
                             broadcastUpdate(BleManager.ACTION_GATT_CONNECTED);
                         } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                            mConnectionState = STATE_DISCONNECTED;
+                            mConnectionState = BluetoothProfile.STATE_DISCONNECTED;
                             Log.i("BleClient.mGat..Conn", "onConnectionStateChange: Disconnected from GATT server.");
                             broadcastUpdate(BleManager.ACTION_GATT_DISCONNECTED);
+                        } else if (newState == BluetoothProfile.STATE_CONNECTING) {
+                            mConnectionState = BluetoothProfile.STATE_CONNECTING;
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -169,7 +168,16 @@ public class BleClient extends Service {
      * Connect to the BLE GATT server.
      */
     public void connectToDevice(Context context, final BluetoothDevice device) {
-        mBluetoothGatt = device.connectGatt(context, true, mGattCallback);
+        mContext = context;
+        mDevice = device;
+        mBluetoothGatt = connectToDevice();
+    }
+
+    /*
+     * Internal function, mostly used to reconnect in case of connection loss.
+     */
+    private BluetoothGatt connectToDevice() {
+        return mDevice.connectGatt(mContext, true, mGattCallback);
     }
 
     public void disconnect() {
@@ -271,6 +279,10 @@ public class BleClient extends Service {
      * and then sends the order data on subsequent transmissions, ending with a END_OF_TRANSMISSION.
      */
     public boolean submitOrder(String order) {
+        if (mConnectionState != BluetoothProfile.STATE_CONNECTED) {
+            mBluetoothGatt = connectToDevice();
+            return false;
+        }
         if (mDataCharacteristic != null && mBluetoothGatt != null) {
             mOrderData = order;
             // Initiate the order write request.
@@ -286,8 +298,12 @@ public class BleClient extends Service {
      * Update the restaurant menu, by initiating a read on the mMenuCharacteristic.
      */
     public boolean updateMenu() {
+        mMenuReceived = false;
+        if (mConnectionState != BluetoothProfile.STATE_CONNECTED) {
+            mBluetoothGatt = connectToDevice();
+            return false;
+        }
         if (mMenuCharacteristic != null && mBluetoothGatt != null) {
-            mMenuReceived = false;
             mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
             return true;
         }
