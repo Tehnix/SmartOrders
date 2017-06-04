@@ -4,9 +4,10 @@ package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 import kaist.customerapplication.CommonObjectManager;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
+import kaist.customerapplication.communicationmanager.ClientData;
 import kaist.customerapplication.communicationmanager.CommunicationManager;
 
-public class RestaurantOwnerApplicationWrapper {
+public class RestaurantOwnerApplicationWrapper implements ClientData {
 
     private CommunicationManager communicationManager;
     private RestaurantInfo restaurantInfo;
@@ -41,15 +42,26 @@ public class RestaurantOwnerApplicationWrapper {
         return restaurantInfo;
     }
 
-    public void orderFromMenu(Order order){
+    public void orderFromMenu(Order order) throws Exception {
         order.tableNumber = Integer.parseInt(this.tableNumber);
+        String myOrder = "...";
+        boolean result = communicationManager.submitOrder(myOrder);
+        if(!result){
+            throw new Exception("communication returned false...");
+        }
         //int result = communicationManager.sendBleRequest(OrderJsonSerializer.serialize(order));
-        //TODO: implement
+
     }
 
     private RestaurantInfo createRestaurantInfoDummy() {
         RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(EXAMPLE_JSON);
         return restaurantInfo;
+    }
+
+    @Override
+    public void handleMenu(String menu) {
+        RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
+        this.restaurantInfo = restaurantInfo;
     }
 
 

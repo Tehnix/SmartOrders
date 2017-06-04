@@ -15,6 +15,7 @@ import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.nfc.tech.NfcA;
 import android.os.Parcelable;
+import android.provider.Settings;
 import android.util.Log;
 
 import java.io.IOException;
@@ -22,9 +23,11 @@ import java.nio.charset.Charset;
 
 public class NfcManager {
 
+    private static final int REQUEST_ENABLE_NFC = 143;
+
     public static final String NFC_MIME_TYPE = "application/smartorder";
 
-    public static final String AAR_RECORD = "kr.ac.kaist.smartorder.smartorder";
+    public static final String AAR_RECORD = CommunicationManager.IDENTIFIER;
 
     private Activity mAppContext;
 
@@ -38,6 +41,8 @@ public class NfcManager {
 
     private final Charset US_ASCII = Charset.forName("US-ASCII");
 
+    private boolean mForegroundDispatchEnabled = false;
+
     /*
      * Set up the NFC Adapter and store the app context.
      */
@@ -47,6 +52,19 @@ public class NfcManager {
         if (mNfcAdapter != null) {
             mNfcEnabled = true;
         }
+        checkNfcEnabled();
+    }
+
+    /*
+     * Check if BLE is enabled, else request it be enabled.
+     */
+    private boolean checkNfcEnabled() {
+        if (mNfcAdapter == null || !mNfcAdapter.isEnabled()) {
+            Intent enableBtIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+            mAppContext.startActivityForResult(enableBtIntent, REQUEST_ENABLE_NFC);
+            return false;
+        }
+        return true;
     }
 
     /*
@@ -58,7 +76,11 @@ public class NfcManager {
             return;
         }
         Log.d("NfcManager (dispatch)", "Disabling foreground dispatch");
-        mNfcAdapter.disableForegroundDispatch(mAppContext);
+        if (mForegroundDispatchEnabled) {
+            mNfcAdapter.disableForegroundDispatch(mAppContext);
+        }
+
+        mForegroundDispatchEnabled = false;
     }
 
     /*
@@ -73,7 +95,11 @@ public class NfcManager {
             pendingIntent = createPendingIntent();
         }
         Log.d("NfcManager (dispatch)", "Enabling foreground dispatch");
-        mNfcAdapter.enableForegroundDispatch(mAppContext, pendingIntent, null, null);
+        if (!mForegroundDispatchEnabled) {
+            mNfcAdapter.enableForegroundDispatch(mAppContext, pendingIntent, null, null);
+        }
+
+        mForegroundDispatchEnabled = true;
     }
 
     /*
@@ -93,6 +119,7 @@ public class NfcManager {
         // actually contains a value.
         if (!mNfcEnabled) {
             Log.e("NfcManager.readNfcTag", "NFC is not enabled on the device!");
+            checkNfcEnabled();
             return Either.left("NFC is not enabled on the device!");
         } else if (intent == null) {
             return Either.left("No intent received");
@@ -157,6 +184,7 @@ public class NfcManager {
         // have an NFC tag discovered.
         if (!mNfcEnabled) {
             Log.e("NfcManager.writeNfcTag", "NFC is not enabled on the device!");
+            checkNfcEnabled();
             return Either.left("NFC is not enabled on the device!");
         }
         if (mNfcTag == null) {

@@ -95,8 +95,6 @@ public class MenuActivity extends AppCompatActivity {
         }catch(Exception e){
             Toast.makeText(this, "Something went wrong, could not place order.", Toast.LENGTH_SHORT).show();
         }
-
-        //TODO: implement
     }
 
     private void goBackToMainActivity() {

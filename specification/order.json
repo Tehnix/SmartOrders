@@ -5,6 +5,7 @@
       "tableNumber": 1,
       "menuItem": {
         "id": 12,
+        "category": "Main-dishes",
         "name": "Tender Crispy Chicken",
         "price": 9000.00,
         "description": "Very tender chicken"
@@ -15,6 +16,7 @@
       "tableNumber": 2,
       "menuItem": {
         "id": 13,
+        "category": "Main-dishes",
         "name": "Hot Chicken",
         "price": 12000.00,
         "description": "Careful! Quite hot chicken"

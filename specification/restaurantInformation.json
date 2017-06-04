@@ -42,28 +42,28 @@
         "menuItems": [
           {
             "id": 15,
-            "category:" "beverage",
+            "category:": "beverage",
             "name": "Coca Cola",
             "price": 500.00,
             "description": ""
           },
           {
             "id": 16,
-            "category:" "beverage",
+            "category:": "beverage",
             "name": "Pepsi",
             "price": 600.00,
             "description": ""
           },
           {
             "id": 17,
-            "category:" "beverage",
+            "category:": "beverage",
             "name": "Cass Beer",
             "price": 3000.00,
             "description": "Good for stamina!"
           },
           {
             "id": 18,
-            "category:" "beverage",
+            "category:": "beverage",
             "name": "Soju",
             "price": 3000.00,
             "description": "Very refreshing!"
