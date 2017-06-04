@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.nio.charset.Charset;
 import java.util.List;
 
 
@@ -32,6 +33,10 @@ public class BleClient extends Service {
     private int mConnectionState = STATE_DISCONNECTED;
 
     private BluetoothGattCharacteristic mMenuCharacteristic;
+
+    private BluetoothGattCharacteristic mDataCharacteristic;
+
+    private final Charset UTF_8 = Charset.forName("UTF-8");
 
     /*
      * Connection states.
@@ -88,6 +93,9 @@ public class BleClient extends Service {
                                     mMenuCharacteristic = characteristic;
                                     mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
                                 }
+                                if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
+                                    mDataCharacteristic = characteristic;
+                                }
                             }
                         } else {
                             Log.w("BleClient.mGattCall..", "onServicesDiscovered received: " + status);
@@ -104,6 +112,20 @@ public class BleClient extends Service {
                         Log.i("BleClient.mGattCall..", "onCharacteristicRead status: " + status);
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGattCall..", "onCharacteristicRead: " + characteristic.toString());
+                            broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+                    super.onCharacteristicWrite(gatt, characteristic, status);
+                    try {
+                        Log.i("BleClient.mGat..write", "onCharacteristicWrite status: " + status);
+                        if (status == BluetoothGatt.GATT_SUCCESS) {
+                            Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
                         }
                     } catch (Exception e) {
@@ -176,8 +198,9 @@ public class BleClient extends Service {
     }
 
     public boolean submitOrder(String order) {
-        if (mMenuCharacteristic != null && mBluetoothGatt != null) {
-            mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+        if (mDataCharacteristic != null && mBluetoothGatt != null) {
+            mDataCharacteristic.setValue(order.getBytes(UTF_8));
+            mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
             return true;
         }
         return false;

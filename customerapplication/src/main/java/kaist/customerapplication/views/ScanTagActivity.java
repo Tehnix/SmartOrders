@@ -58,18 +58,23 @@ public class ScanTagActivity extends AppCompatActivity {
             Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent, CommonObjectManager.restaurantOwnerApplicationWrapper);
             if (nfcMessage.isRight()) {
                 mNfcMessage = nfcMessage.right();
-                Toast.makeText(this, "Restaurant chip detected", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Restaurant chip detected. Establishing connection...", Toast.LENGTH_SHORT).show();
 
                 String[] payload = nfcMessage.right().split(";;");
                 String tableNumber = payload[0];
 
                 CommonObjectManager.restaurantOwnerApplicationWrapper.setNewConnectionToRestaurant(mCommunicationManager, tableNumber);
-                goBackToMainActivity();
+                CommonObjectManager.restaurantOwnerApplicationWrapper.setScanTagActivityReference(this);
             } else {
                 mNfcMessage = nfcMessage.left();
             }
             //statusText.setText(mNfcMessage);
         }
+    }
+
+    public void handleBleRestaurantResponse(){
+        Toast.makeText(this, "Successfully connected to restaurant", Toast.LENGTH_SHORT).show();
+        goBackToMainActivity();
     }
 
     /*public void onWriteButtonClick(View v) {
