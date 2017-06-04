@@ -239,6 +239,11 @@ public class BleClient extends Service {
                     mDataCharacteristic.setValue(BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
                     mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
                     mWriteChrcIndex = 0;
+
+                    intent.putExtra("uuid", BleManager.UUID_SMARTORDER_DATA.toString());
+                    intent.putExtra(BleManager.EXTRA_DATA, "Order submitted!");
+                    mAppContext.sendBroadcast(intent);
+
                 } else {
                     // Only go through one loop for each characteristic write request.
                     for (; mWriteChrcIndex < orderData.length; mWriteChrcIndex++) {
