@@ -56,9 +56,9 @@ public class BleManager {
      * Transmission constants used to handle the state of the response and requests in the
      * GATT server and client communication.
      */
-    public static final String END_OF_TRANSMISSION = "!END!";
-    public static final String CONTINUE_TRANSMISSION = "!CONTINUE!";
     public static final String START_TRANSMISSION = "!START!";
+    public static final String CONTINUE_TRANSMISSION = "!CONTINUE!";
+    public static final String END_OF_TRANSMISSION = "!END!";
 
     /*
      * Data/intent identifiers.
@@ -246,14 +246,18 @@ public class BleManager {
      * Unbind the service.
      */
     public void destroyService() {
-        mAppContext.unbindService(mBleServiceConnection);
+        if (mBleServiceConnection != null) {
+            mAppContext.unbindService(mBleServiceConnection);
+        }
     }
 
     /*
      * Disconnect from the BLE GATT server.
      */
     public void disconnectFromServer() {
-        mBleClient.disconnect();
+        if (mBleClient != null) {
+            mBleClient.disconnect();
+        }
     }
 
     public boolean submitOrder(String order) {
