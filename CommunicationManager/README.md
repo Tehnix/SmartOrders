@@ -236,10 +236,19 @@ private class DeliciousRestaurantData implements ClientData {
     public void handleMenu(String menu) {
         Log.i("DeliciousRestaurantData", "Received menu: " + menu);
     }
+
+    @Override
+    public void handleOrderResponse(boolean success, String msg) {
+        if (success) {
+            Log.i("DeliciousRestaurantData", "Order was placed!: " + msg);
+        } else {
+            Log.i("DeliciousRestaurantData", "Order was not placed!: " + msg);
+        }
+    }
 }
 ```
 
-This is used in the BLE server to pass on the menu data once it's received.
+This is used in the BLE server to pass on the menu data once it's received, and also handle the response to the submitted order.
 
 To submit an order, call,
 
