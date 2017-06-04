@@ -130,6 +130,8 @@ public class BleClient extends Service {
                                     mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
                                 }
                             }
+                        } else {
+                            Log.i("BleClient.mGattCall..", "onCharacteristicRead: Got status = " + status);
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -142,7 +144,6 @@ public class BleClient extends Service {
                     try {
                         Log.i("BleClient.mGat..write", "onCharacteristicWrite status: " + status);
                         if (status == BluetoothGatt.GATT_SUCCESS) {
-                            Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
                             if (characteristic.getUuid().equals(BleManager.UUID_SMARTORDER_DATA)) {
                                 final String data = new String(characteristic.getValue(), UTF_8);
                                 if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
@@ -259,8 +260,6 @@ public class BleClient extends Service {
                         requestIndex++;
                     }
                 }
-                mDataCharacteristic.setValue(BleManager.START_TRANSMISSION.getBytes(UTF_8));
-                mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
             } else {
                 // When the GATT server receives a BleManager.END_OF_TRANSMISSION, it responds with
                 // the order confirmation, meaning we can assume the result is here if it's not a
