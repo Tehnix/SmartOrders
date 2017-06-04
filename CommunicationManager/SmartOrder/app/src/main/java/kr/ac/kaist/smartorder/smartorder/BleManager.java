@@ -260,9 +260,26 @@ public class BleManager {
         }
     }
 
+    /*
+     * Submit an order to the BLE GATT server.
+     *
+     * @see BleClient.submitOrder
+     */
     public boolean submitOrder(String order) {
         if (mIsConnected) {
             return mBleClient.submitOrder(order);
+        }
+        return false;
+    }
+
+    /*
+     * Force fetching the menu from the BLE GATT server again.
+     *
+     * @see BleClient.updateMenu
+     */
+    public boolean updateMenu() {
+        if (mBleClient != null) {
+            return mBleClient.updateMenu();
         }
         return false;
     }
