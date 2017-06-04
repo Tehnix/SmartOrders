@@ -62,7 +62,8 @@
             android:layout_marginTop="8dp"
             android:text="@string/txt_ble_server"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtBleName" />
+            app:layout_constraintTop_toBottomOf="@+id/txtBleName"
+            android:layout_marginStart="8dp" />
 
     </android.support.constraint.ConstraintLayout>
 </ScrollView>
