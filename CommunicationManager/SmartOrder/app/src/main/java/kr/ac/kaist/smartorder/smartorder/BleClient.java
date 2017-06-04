@@ -195,11 +195,12 @@ public class BleClient extends Service {
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
             final String data = new String(characteristic.getValue(), UTF_8);
             characteristicReadOffset++;
-            mMenuData = mMenuData + data;
             Log.d("BleClient.broadca..", String.format("Building menu: %s", data));
 
             // Check if we reached the end of the transmission.
-            if (data.equals(BleManager.END_OF_TRANSMISSION)) {
+            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                mMenuData = mMenuData + data;
+            } else {
                 Log.d("BleClient.broadca..", String.format("Received full menu: %s", mMenuData));
                 intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
                 intent.putExtra(BleManager.EXTRA_DATA, mMenuData);

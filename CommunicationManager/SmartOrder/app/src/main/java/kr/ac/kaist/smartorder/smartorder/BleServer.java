@@ -113,6 +113,9 @@ public class BleServer {
                                     BluetoothGatt.GATT_SUCCESS,
                                     0,
                                     response);
+                            // Increment mStartIndex manually here, because it never reaches the end
+                            // the loop, where the increment happens.
+                            mStartIndex++;
                             break;
                         }
                         responseIndex++;
