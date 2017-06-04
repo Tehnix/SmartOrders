@@ -261,3 +261,14 @@ To submit an order, call,
 String myOrder = "...";
 mCommunicationManager.submitOrder(myOrder);
 ```
+
+# Further Work
+
+Some ideas to increase the data rate from the 20 bytes per packet, etc.
+
+- Increase the MTU size on the characteristic https://developer.android.com/reference/android/bluetooth/BluetoothGatt.html#requestMtu(int)
+- Multiple packets per connection (using readCharacteristic offsets?) https://punchthrough.com/blog/posts/maximizing-ble-throughput-on-ios-and-android
+
+Increasing functionality or user experience.
+
+- Setup characteristic notifications so the server can indicate order changes
