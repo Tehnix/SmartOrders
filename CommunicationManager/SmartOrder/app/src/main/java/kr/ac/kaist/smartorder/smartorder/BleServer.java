@@ -95,7 +95,7 @@ public class BleServer {
                 byte[] menuResponse = mRestaurantData.getMenu().getBytes(UTF_8);
                 byte[] response = new byte[20];
                 int responseIndex = 0;
-                if (mStartIndex == (menuResponse.length - 1)) {
+                if (mStartIndex >= (menuResponse.length - 1)) {
                     mBleGattServer.sendResponse(device,
                             requestId,
                             BluetoothGatt.GATT_SUCCESS,
@@ -108,6 +108,14 @@ public class BleServer {
                         response[responseIndex] = menuResponse[mStartIndex];
                         // Send a response every 20 bytes.
                         if (responseIndex >= 19 || mStartIndex == (menuResponse.length - 1)) {
+                            // Fill the remaining response with spaces.
+                            if (responseIndex < 19) {
+                                responseIndex++;
+                                for (int i = responseIndex; i < 19; i++) {
+                                    response[responseIndex] = ' ';
+                                }
+                            }
+                            // Send the response.
                             mBleGattServer.sendResponse(device,
                                     requestId,
                                     BluetoothGatt.GATT_SUCCESS,
