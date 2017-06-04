@@ -110,7 +110,6 @@ public class BleClient extends Service {
                 }
 
                 @Override
-                // Result of a characteristic read operation
                 public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
                     try {
                         Log.i("BleClient.mGattCall..", "onCharacteristicRead status: " + status);

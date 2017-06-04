@@ -111,8 +111,8 @@ public class BleServer {
                             // Fill the remaining response with spaces.
                             if (responseIndex < 19) {
                                 responseIndex++;
-                                for (int i = responseIndex; i < 19; i++) {
-                                    response[responseIndex] = ' ';
+                                for (int i = responseIndex; i <= 19; i++) {
+                                    response[responseIndex] = " ".getBytes(UTF_8)[0];
                                 }
                             }
                             // Send the response.
