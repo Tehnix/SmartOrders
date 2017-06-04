@@ -88,12 +88,31 @@ public class BleServer {
             // Respond with the menu if it is a read request for that.
             if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
                 Log.e("BleServer.onCha..Read..", "Respond with menu");
-                String menuResponse = mRestaurantData.getMenu();
-                mBleGattServer.sendResponse(device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        0,
-                        menuResponse.getBytes(UTF_8));
+                byte[] menuResponse = mRestaurantData.getMenu().getBytes(UTF_8);
+                byte[] response = new byte[20];
+                int responseIndex = 0;
+                int responseOffset = 0;
+                for (Byte menuResponseByte : menuResponse) {
+                    response[responseIndex] = menuResponseByte;
+                    // Send a response every 20 bytes.
+                    if (responseIndex >= 19) {
+                        mBleGattServer.sendResponse(device,
+                                requestId,
+                                BluetoothGatt.GATT_SUCCESS,
+                                responseOffset,
+                                response);
+                        responseIndex = 0;
+                        responseOffset++;
+                    }
+                    responseIndex++;
+                }
+                if (responseIndex != 0) {
+                    mBleGattServer.sendResponse(device,
+                            requestId,
+                            BluetoothGatt.GATT_SUCCESS,
+                            0,
+                            response);
+                }
             } else {
                 mBleGattServer.sendResponse(device,
                         requestId,
