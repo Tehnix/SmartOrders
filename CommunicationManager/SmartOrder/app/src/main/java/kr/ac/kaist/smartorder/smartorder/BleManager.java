@@ -42,8 +42,6 @@ public class BleManager {
 
     private Handler mScanHandler = new Handler();
 
-    private Handler mHandler;
-
     private String mBleAddress = null;
 
     private boolean mIsScanning = false;
@@ -85,13 +83,7 @@ public class BleManager {
                         Intent gattServiceIntent = new Intent(mAppContext, BleClient.class);
                         mAppContext.bindService(gattServiceIntent, mBleServiceConnection, mAppContext.BIND_AUTO_CREATE);
                         Log.i("BleManager.mBleScanCa..", "Connecting to device");
-                        mHandler.getLooper().prepare();
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                mBleClient.connectToDevice(mAppContext, device);
-                            }
-                        });
+                        new ConnectToBle(device).execute();
                     }
                 }
             };
@@ -140,7 +132,6 @@ public class BleManager {
         mBleManager = (BluetoothManager) mAppContext.getSystemService(Context.BLUETOOTH_SERVICE);
         mBleAdapter = mBleManager.getAdapter();
         mBleClient = new BleClient(mAppContext);
-        mHandler = new Handler(mAppContext.getMainLooper());
         checkBleEnabled();
     }
 
@@ -271,13 +262,6 @@ public class BleManager {
                     mBleServer = bleServer;
                 }
             }.execute();
-
-//            mHandler.post(new Runnable() {
-//                @Override
-//                public void run() {
-//                    mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, restaurantData);
-//                }
-//            });
             return true;
         } else {
             Log.e("BleManager.startBleSe..", "SDK version is too low to start the BLE GATT server!");
@@ -297,6 +281,21 @@ public class BleManager {
         protected BleServer doInBackground(Void... params) {
             mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, mRestaurantData);
             return mBleServer;
+        }
+    }
+
+    private class ConnectToBle extends AsyncTask<Void, Void, Void> {
+
+        private BluetoothDevice mDevice;
+
+        public ConnectToBle(BluetoothDevice device) {
+            mDevice = device;
+        }
+
+        @Override
+        protected Void doInBackground(Void... params) {
+            mBleClient.connectToDevice(mAppContext, mDevice);
+            return null;
         }
     }
 }
