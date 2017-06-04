@@ -91,7 +91,6 @@ public class MenuActivity extends AppCompatActivity {
         try{
             restaurantOwnerApplicationWrapper.orderFromMenu(order, this);
             Toast.makeText(this, "Placing order. Please wait...", Toast.LENGTH_SHORT).show();
-            goBackToMainActivity();
         }catch(Exception e){
             Toast.makeText(this, "Something went wrong, could not place order.", Toast.LENGTH_SHORT).show();
         }

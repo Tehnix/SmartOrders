@@ -3,6 +3,7 @@ package kaist.customerapplication.views;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -40,6 +41,8 @@ public class ScanTagActivity extends AppCompatActivity {
         scanning = false;
 
 
+        handleIntent(getIntent());
+
     }
 
     public void scanForNFC(View view){
@@ -54,27 +57,36 @@ public class ScanTagActivity extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        Log.i("ScanTagActivity:onNe...", "New intent caught.");
         if(scanning){
-            Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent, CommonObjectManager.restaurantOwnerApplicationWrapper);
-            if (nfcMessage.isRight()) {
-                mNfcMessage = nfcMessage.right();
-                Toast.makeText(this, "Restaurant chip detected. Establishing connection...", Toast.LENGTH_SHORT).show();
+            handleIntent(intent);
+        }
+    }
 
-                String[] payload = nfcMessage.right().split(";;");
-                String tableNumber = payload[0];
+    private void handleIntent(Intent intent){
+        Either<String, String> nfcMessage = mCommunicationManager.readNfcTag(intent, CommonObjectManager.restaurantOwnerApplicationWrapper);
+        if (nfcMessage.isRight()) {
+            mNfcMessage = nfcMessage.right();
+            Toast.makeText(this, "Restaurant chip detected. Establishing connection...", Toast.LENGTH_SHORT).show();
+            statusText.setText("Establishing connection...");
 
-                CommonObjectManager.restaurantOwnerApplicationWrapper.setNewConnectionToRestaurant(mCommunicationManager, tableNumber);
-                CommonObjectManager.restaurantOwnerApplicationWrapper.setScanTagActivityReference(this);
-            } else {
-                mNfcMessage = nfcMessage.left();
-            }
-            //statusText.setText(mNfcMessage);
+            String[] payload = nfcMessage.right().split(";;");
+            String tableNumber = payload[0];
+
+            CommonObjectManager.restaurantOwnerApplicationWrapper.setNewConnectionToRestaurant(mCommunicationManager, tableNumber);
+            CommonObjectManager.restaurantOwnerApplicationWrapper.setScanTagActivityReference(this);
+        } else {
+            //mNfcMessage = nfcMessage.left();
         }
     }
 
     public void handleBleRestaurantResponse(){
         Toast.makeText(this, "Successfully connected to restaurant", Toast.LENGTH_SHORT).show();
         goBackToMainActivity();
+    }
+
+    public void handleBleConnectionSuccess(){
+        statusText.setText("Connection established. Getting restaurant information...");
     }
 
     /*public void onWriteButtonClick(View v) {

@@ -40,6 +40,8 @@ public class BleManager {
 
     private BleServer mBleServer;
 
+    private ClientData mClientData;
+
     private Handler mScanHandler = new Handler();
 
     private String mBleAddress = null;
@@ -49,6 +51,14 @@ public class BleManager {
     private boolean mIsConnected = false;
 
     private boolean mReceiverRegistered = false;
+
+    /*
+     * Transmission constants used to handle the state of the response and requests in the
+     * GATT server and client communication.
+     */
+    public static final String START_TRANSMISSION = "!START!";
+    public static final String CONTINUE_TRANSMISSION = "!CONTINUE!";
+    public static final String END_OF_TRANSMISSION = "!END!";
 
     /*
      * Data/intent identifiers.
@@ -98,14 +108,21 @@ public class BleManager {
             if (BleManager.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Connected");
                 mIsConnected = true;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Disconnected");
                 mIsConnected = false;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 Log.i("BleManager.mGattUpdat..", mBleClient.getSupportedGattServices().toString());
             } else if (BleManager.ACTION_DATA_AVAILABLE.equals(action)) {
-                Log.i("BleManager.mGattUpdat..", intent.getStringExtra(BleManager.EXTRA_DATA));
+                Log.i("BleManager.mGattUpdat..", "Got data: " + intent.getStringExtra(BleManager.EXTRA_DATA));
+                if (BleManager.UUID_SMARTORDER_MENU.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleMenu(intent.getStringExtra(BleManager.EXTRA_DATA));
+                } else if (BleManager.UUID_SMARTORDER_DATA.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleOrderResponse(intent.getStringExtra(BleManager.EXTRA_DATA));
+                }
             }
         }
     };
@@ -155,6 +172,7 @@ public class BleManager {
         if (!checkBleEnabled()) {
             return false;
         }
+        mClientData = clientData;
         // To scan for devices we also need to request coarse location permissions.
         if (ContextCompat.checkSelfPermission(mAppContext.getApplicationContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -228,19 +246,40 @@ public class BleManager {
      * Unbind the service.
      */
     public void destroyService() {
-        mAppContext.unbindService(mBleServiceConnection);
+        if (mBleServiceConnection != null) {
+            mAppContext.unbindService(mBleServiceConnection);
+        }
     }
 
     /*
      * Disconnect from the BLE GATT server.
      */
     public void disconnectFromServer() {
-        mBleClient.disconnect();
+        if (mBleClient != null) {
+            mBleClient.disconnect();
+        }
     }
 
+    /*
+     * Submit an order to the BLE GATT server.
+     *
+     * @see BleClient.submitOrder
+     */
     public boolean submitOrder(String order) {
         if (mIsConnected) {
             return mBleClient.submitOrder(order);
+        }
+        return false;
+    }
+
+    /*
+     * Force fetching the menu from the BLE GATT server again.
+     *
+     * @see BleClient.updateMenu
+     */
+    public boolean updateMenu() {
+        if (mBleClient != null) {
+            return mBleClient.updateMenu();
         }
         return false;
     }
@@ -294,7 +333,12 @@ public class BleManager {
 
         @Override
         protected Void doInBackground(Void... params) {
-            mBleClient.connectToDevice(mAppContext, mDevice);
+            mAppContext.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    mBleClient.connectToDevice(mAppContext, mDevice);
+                }
+            });
             return null;
         }
     }

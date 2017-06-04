@@ -147,6 +147,15 @@ public class CommunicationManager {
     }
 
     /*
+     * Force fetching the menu from the BLE GATT server again.
+     *
+     * @see BleManager.updateMenu
+     */
+    public boolean updateMenu() {
+        return mBleManager.updateMenu();
+    }
+
+    /*
      * Relies on there being set a BLE address. Returns true if the device scan is
      * started, and false if not.
      *

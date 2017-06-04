@@ -1,6 +1,9 @@
 package kaist.customerapplication.RestaurantOwnerApplicationCommunication;
 
 
+import android.util.Log;
+import android.widget.Toast;
+
 import kaist.customerapplication.CommonObjectManager;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Order;
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
@@ -64,14 +67,24 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
 
     @Override
     public void handleMenu(String menu) {
-        RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
-        this.restaurantInfo = restaurantInfo;
-        scanTagActivityReference.handleBleRestaurantResponse();
+        try{
+            RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
+            this.restaurantInfo = restaurantInfo;
+            scanTagActivityReference.handleBleRestaurantResponse();
+        }catch (Exception e){
+            Log.i("ROAW.handleMenu", "Something went wrong in handling the menu.");
+            e.printStackTrace();
+        }
     }
 
     @Override
-    public void handleOrderResponse(boolean success, String msg) {
+    public void handleOrderResponse(String msg) {
         menuActivityReference.placeOrderSuccess();
+    }
+
+    @Override
+    public void handleConnectionResult(boolean connected) {
+        scanTagActivityReference.handleBleConnectionSuccess();
     }
 
     public void setScanTagActivityReference(ScanTagActivity scanTagActivityReference) {
