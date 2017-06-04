@@ -192,7 +192,7 @@ public class NfcManager {
             return Either.left("No NFC tag found!");
         }
         Log.d("NfcManager.writeNfcTag", "Preparing the NFC message");
-        NdefMessage message = prepareMessage(payload);
+        NdefMessage message = prepareMessageWithoutAAR(payload);
 
         // Connect to the NFC tag by trying different methods, in order: Ndef, NdefFormatable,
         // MifareUltralight and finally NfcA if all else fails. The last two only connect but

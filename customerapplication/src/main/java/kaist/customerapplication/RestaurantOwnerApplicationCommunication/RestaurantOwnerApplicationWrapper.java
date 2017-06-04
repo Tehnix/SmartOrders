@@ -7,6 +7,7 @@ import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Re
 import kaist.customerapplication.communicationmanager.ClientData;
 import kaist.customerapplication.communicationmanager.CommunicationManager;
 import kaist.customerapplication.views.MenuActivity;
+import kaist.customerapplication.views.ScanTagActivity;
 
 public class RestaurantOwnerApplicationWrapper implements ClientData {
 
@@ -16,6 +17,7 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
     private String tableNumber;
 
     MenuActivity menuActivityReference;
+    ScanTagActivity scanTagActivityReference;
 
 
     public void setNewConnectionToRestaurant(CommunicationManager communicationManager, String tableNumber) {
@@ -29,8 +31,6 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
      * @return null if no restaurant info was found
      */
     public RestaurantInfo getRestaurantInfo() {
-        //TODO: implement
-
         //RestaurantInfo result;
         // if(restaurantInfo == null){
         //      result = RestaurantInfoJsonSerializer.deserialize(communicationManager.request(""));
@@ -38,10 +38,11 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
         //      result = restaurantInfo;
         //return result
 
-        RestaurantInfo restaurantInfo = createRestaurantInfoDummy();
+        /*RestaurantInfo restaurantInfo = createRestaurantInfoDummy();
         if(communicationManager==null){
             restaurantInfo = null;
-        }
+        }*/
+
         return restaurantInfo;
     }
 
@@ -65,6 +66,7 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
     public void handleMenu(String menu) {
         RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
         this.restaurantInfo = restaurantInfo;
+        scanTagActivityReference.handleBleRestaurantResponse();
     }
 
     @Override
@@ -72,6 +74,9 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
         menuActivityReference.placeOrderSuccess();
     }
 
+    public void setScanTagActivityReference(ScanTagActivity scanTagActivityReference) {
+        this.scanTagActivityReference = scanTagActivityReference;
+    }
 
     private final String EXAMPLE_JSON = "{\n" +
             "  \"info\": {\n" +
@@ -164,4 +169,6 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
             "    ]\n" +
             "  }\n" +
             "}\n";
+
+
 }
