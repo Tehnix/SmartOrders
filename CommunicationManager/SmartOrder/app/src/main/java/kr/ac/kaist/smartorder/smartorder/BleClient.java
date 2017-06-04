@@ -44,6 +44,8 @@ public class BleClient extends Service {
 
     private String mOrderData = "";
 
+    private boolean mMenuReceived = false;
+
     /*
      * Connection states.
      */
@@ -97,7 +99,9 @@ public class BleClient extends Service {
                             for (BluetoothGattCharacteristic characteristic : supportedCharacteristics) {
                                 if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
                                     mMenuCharacteristic = characteristic;
-                                    mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                                    if (!mMenuReceived) {
+                                        mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                                    }
                                 }
                                 if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
                                     mDataCharacteristic = characteristic;
@@ -119,10 +123,12 @@ public class BleClient extends Service {
                             Log.i("BleClient.mGattCall..", "onCharacteristicRead: " + characteristic.toString());
                             broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
 
-                            final String data = new String(characteristic.getValue(), UTF_8);
-                            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
-                                Log.i("BleClient.mGattCall..", "onCharacteristicRead: Requesting next part!");
-                                mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                            if (characteristic.getUuid().equals(BleManager.UUID_SMARTORDER_MENU)) {
+                                final String data = new String(characteristic.getValue(), UTF_8);
+                                if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                                    Log.i("BleClient.mGattCall..", "onCharacteristicRead: Requesting next part!");
+                                    mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
+                                }
                             }
                         }
                     } catch (Exception e) {
@@ -137,7 +143,13 @@ public class BleClient extends Service {
                         Log.i("BleClient.mGat..write", "onCharacteristicWrite status: " + status);
                         if (status == BluetoothGatt.GATT_SUCCESS) {
                             Log.i("BleClient.mGat..write", "onCharacteristicWrite: " + characteristic.toString());
-                            broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+                            if (characteristic.getUuid().equals(BleManager.UUID_SMARTORDER_DATA)) {
+                                final String data = new String(characteristic.getValue(), UTF_8);
+                                if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                                    Log.i("BleClient.mGat..write", "onCharacteristicWrite: Sending next part of order!");
+                                    mBluetoothGatt.readCharacteristic(mDataCharacteristic);
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -195,16 +207,16 @@ public class BleClient extends Service {
         Intent intent = new Intent(action);
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
             final String data = new String(characteristic.getValue(), UTF_8);
-            Log.i("BleClient.broadca..", String.format("Building menu: %s", data));
-
             // Check if we reached the end of the transmission.
             if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
+                Log.i("BleClient.broadca..", String.format("Building menu: %s", data));
                 mMenuData = mMenuData + data;
             } else {
                 Log.e("BleClient.broadca..", String.format("Received full menu: %s", mMenuData));
                 intent.putExtra("uuid", BleManager.UUID_SMARTORDER_MENU.toString());
                 intent.putExtra(BleManager.EXTRA_DATA, mMenuData);
                 mAppContext.sendBroadcast(intent);
+                mMenuReceived = true;
 
                 // Reset the menu data builder.
                 mMenuData = "";
@@ -267,8 +279,18 @@ public class BleClient extends Service {
         if (mDataCharacteristic != null && mBluetoothGatt != null) {
             mOrderData = order;
             // Initiate the order write request.
+            Log.d("BleClient.submitOrder", "Initiating order transmission");
             mDataCharacteristic.setValue(BleManager.START_TRANSMISSION.getBytes(UTF_8));
             mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
+            return true;
+        }
+        return false;
+    }
+
+    public boolean updateMenu() {
+        if (mMenuCharacteristic != null && mBluetoothGatt != null) {
+            mMenuReceived = false;
+            mBluetoothGatt.readCharacteristic(mMenuCharacteristic);
             return true;
         }
         return false;
