@@ -100,9 +100,11 @@ public class BleManager {
             if (BleManager.ACTION_GATT_CONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Connected");
                 mIsConnected = true;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_DISCONNECTED.equals(action)) {
                 Log.i("BleManager.mGattUpdat..", "Disconnected");
                 mIsConnected = false;
+                mClientData.handleConnectionResult(mIsConnected);
             } else if (BleManager.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 // Show all the supported services and characteristics on the user interface.
                 Log.i("BleManager.mGattUpdat..", mBleClient.getSupportedGattServices().toString());

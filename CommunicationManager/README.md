@@ -238,11 +238,16 @@ private class DeliciousRestaurantData implements ClientData {
     }
 
     @Override
-    public void handleOrderResponse(boolean success, String msg) {
-        if (success) {
-            Log.i("DeliciousRestaurantData", "Order was placed!: " + msg);
+    public void handleOrderResponse(String msg) {
+        Log.i("DeliciousRestaurantData", "Order placement response: " + msg);
+    }
+
+    @Override
+    public void handleConnectionResult(boolean connected) {
+        if (connected) {
+            Log.i("DeliciousRestaurantData", "Is connected to server!");
         } else {
-            Log.i("DeliciousRestaurantData", "Order was not placed!: " + msg);
+            Log.i("DeliciousRestaurantData", "Is disconnected from server!");
         }
     }
 }
