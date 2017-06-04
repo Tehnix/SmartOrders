@@ -193,7 +193,7 @@ public class BleClient extends Service {
         // Check what type of characteristic has been received.
         Intent intent = new Intent(action);
         if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-            final String data = characteristic.getStringValue(characteristicReadOffset);
+            final String data = new String(characteristic.getValue(), UTF_8);
             characteristicReadOffset++;
             mMenuData = mMenuData + data;
             Log.d("BleClient.broadca..", String.format("Building menu: %s", data));
