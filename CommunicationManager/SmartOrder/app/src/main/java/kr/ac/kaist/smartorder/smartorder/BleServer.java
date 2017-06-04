@@ -101,6 +101,7 @@ public class BleServer {
                             BluetoothGatt.GATT_SUCCESS,
                             0,
                             BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
+                    mStartIndex = 0;
                 } else {
                     // Only go through one loop for each characteristic read request.
                     for (; mStartIndex < menuResponse.length; mStartIndex++) {
