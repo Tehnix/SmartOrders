@@ -90,7 +90,7 @@ public class DBConnector extends SQLiteOpenHelper{
             generateMenuItems(db);
             db.execSQL(
                     "CREATE TABLE IF NOT EXISTS orders " +
-                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, tableid INTEGER, menuid INTEGER, number INTEGER NOT NULL, FOREIGN KEY(tableid) REFERENCES tables(id), FOREIGN KEY(menuid) REFERENCES menu(id))"
+                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, menuid INTEGER, tableid INTEGER, number INTEGER NOT NULL)"
             );
             Log.d("db test", "test");
         }catch (SQLException e){
@@ -255,7 +255,7 @@ public class DBConnector extends SQLiteOpenHelper{
             cursor.moveToFirst();
 
         MenuItem item = new MenuItem(Integer.parseInt(cursor.getString(0)),
-                cursor.getString(1), cursor.getString(2),cursor.getString(3), Double.parseDouble(cursor.getString(4)));
+                cursor.getString(1), cursor.getString(2), cursor.getString(3), Double.parseDouble(cursor.getString(4)));
         return item;
     }
 
@@ -333,14 +333,15 @@ public class DBConnector extends SQLiteOpenHelper{
     public OrderItem getOrderItem(int id){
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor = db.query(ORDERS_TABLE_NAME, new String[] {
-                        ORDERS_COLUMN_MENUID, ORDERS_COLUMN_TABLEID, ORDERS_COLUMN_NUMBER}, ORDERS_COLUMN_ID + "=?",
+                        ORDERS_COLUMN_ID, ORDERS_COLUMN_MENUID, ORDERS_COLUMN_TABLEID, ORDERS_COLUMN_NUMBER}, ORDERS_COLUMN_ID + "=?",
                 new String[] { String.valueOf(id) }, null, null, null, null);
         if (cursor != null)
             cursor.moveToFirst();
+        Log.i("ID: " , cursor.getString(1));
 
-        MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(0)));
+        MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(1)));
 
-        OrderItem orderItem = new OrderItem(menuItem, Integer.parseInt(cursor.getString(1)), Integer.parseInt(cursor.getString(2)));
+        OrderItem orderItem = new OrderItem(menuItem, Integer.parseInt(cursor.getString(2)), Integer.parseInt(cursor.getString(3)));
 
         return orderItem;
     }
@@ -365,7 +366,7 @@ public class DBConnector extends SQLiteOpenHelper{
         if (cursor.moveToFirst()) {
             do {
                 MenuItem menuItem = getMenuItem(Integer.parseInt(cursor.getString(1)));
-                OrderItemDB orderItem = new OrderItemDB(Integer.parseInt(cursor.getString(1)),menuItem, Integer.parseInt(cursor.getString(2)), Integer.parseInt(cursor.getString(3)));
+                OrderItemDB orderItem = new OrderItemDB(Integer.parseInt(cursor.getString(0)),menuItem, Integer.parseInt(cursor.getString(2)), Integer.parseInt(cursor.getString(3)));
                 // Adding contact to list
                 orderList.add(orderItem);
             } while (cursor.moveToNext());
