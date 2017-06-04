@@ -18,7 +18,6 @@ import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.ParcelUuid;
 import android.util.Log;
-import android.widget.Toast;
 
 import java.nio.charset.Charset;
 import java.util.HashMap;
@@ -70,11 +69,12 @@ public class BleServer {
             super.onConnectionStateChange(device, status, newState);
             if (mConnectedDevices.containsKey(device.getAddress())) {
                 if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+                    Log.i("BleServer.onConn...", "Device disconnected: " + device.getAddress());
                     mConnectedDevices.remove(device.getAddress());
                 }
             } else {
                 if (newState == BluetoothProfile.STATE_CONNECTED) {
-                    Toast.makeText(mAppContext, "Device connected " + device.getAddress(), Toast.LENGTH_SHORT).show();
+                    Log.i("BleServer.onConn...", "Device connected: " + device.getAddress());
                     mConnectedDevices.put(device.getAddress(), device);
                 }
             }
@@ -88,7 +88,6 @@ public class BleServer {
             // Respond with the menu if it is a read request for that.
             if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
                 Log.e("BleServer.onCha..Read..", "Respond with menu");
-                Toast.makeText(mAppContext, "Sending menu response", Toast.LENGTH_SHORT).show();
                 String menuResponse = mRestaurantData.getMenu();
                 mBleGattServer.sendResponse(device,
                         requestId,
@@ -113,7 +112,6 @@ public class BleServer {
 
             // Do nothing if the request does not expect a response.
             if (!responseNeeded) {
-                Toast.makeText(mAppContext, "No response needed?", Toast.LENGTH_SHORT).show();
                 return;
             }
             // Respond with the response to an order if it is a write request for that.
@@ -125,7 +123,6 @@ public class BleServer {
                 if (orderStatus) {
                     orderResponse = "Order received!";
                 }
-                Toast.makeText(mAppContext, "Received order!", Toast.LENGTH_SHORT).show();
                 mBleGattServer.sendResponse(device,
                         requestId,
                         BluetoothGatt.GATT_SUCCESS,

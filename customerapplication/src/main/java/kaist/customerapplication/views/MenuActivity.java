@@ -89,8 +89,8 @@ public class MenuActivity extends AppCompatActivity {
 
     public void placeOrder(View view) {
         try{
-            restaurantOwnerApplicationWrapper.orderFromMenu(order);
-            Toast.makeText(this, "Order successfully placed!", Toast.LENGTH_SHORT).show();
+            restaurantOwnerApplicationWrapper.orderFromMenu(order, this);
+            Toast.makeText(this, "Placing order. Please wait...", Toast.LENGTH_SHORT).show();
             goBackToMainActivity();
         }catch(Exception e){
             Toast.makeText(this, "Something went wrong, could not place order.", Toast.LENGTH_SHORT).show();
@@ -100,6 +100,11 @@ public class MenuActivity extends AppCompatActivity {
     private void goBackToMainActivity() {
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(intent);
+    }
+
+    public void placeOrderSuccess(){
+        Toast.makeText(this, "Order successfully placed", Toast.LENGTH_SHORT).show();
+        goBackToMainActivity();
     }
 
 

@@ -6,6 +6,7 @@ import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.Or
 import kaist.customerapplication.RestaurantOwnerApplicationCommunication.data.RestaurantInfo;
 import kaist.customerapplication.communicationmanager.ClientData;
 import kaist.customerapplication.communicationmanager.CommunicationManager;
+import kaist.customerapplication.views.MenuActivity;
 
 public class RestaurantOwnerApplicationWrapper implements ClientData {
 
@@ -13,6 +14,8 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
     private RestaurantInfo restaurantInfo;
 
     private String tableNumber;
+
+    MenuActivity menuActivityReference;
 
 
     public void setNewConnectionToRestaurant(CommunicationManager communicationManager, String tableNumber) {
@@ -42,14 +45,14 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
         return restaurantInfo;
     }
 
-    public void orderFromMenu(Order order) throws Exception {
+    public void orderFromMenu(Order order, MenuActivity menuActivity) throws Exception {
+        menuActivityReference = menuActivity;
         order.tableNumber = Integer.parseInt(this.tableNumber);
-        String myOrder = "...";
-        boolean result = communicationManager.submitOrder(myOrder);
+        String orderJson = OrderJsonSerializer.serialize(order);
+        boolean result = communicationManager.submitOrder(orderJson);
         if(!result){
             throw new Exception("communication returned false...");
         }
-        //int result = communicationManager.sendBleRequest(OrderJsonSerializer.serialize(order));
 
     }
 
@@ -62,6 +65,11 @@ public class RestaurantOwnerApplicationWrapper implements ClientData {
     public void handleMenu(String menu) {
         RestaurantInfo restaurantInfo = RestaurantInfoJsonSerializer.deserialize(menu);
         this.restaurantInfo = restaurantInfo;
+    }
+
+    @Override
+    public void handleOrderResponse(boolean success, String msg) {
+        menuActivityReference.placeOrderSuccess();
     }
 
 

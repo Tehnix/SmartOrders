@@ -27,6 +27,8 @@ public class BleClient extends Service {
 
     private final IBinder mBinder = new LocalBinder();
 
+    private Handler mHandler;
+
     private int mConnectionState = STATE_DISCONNECTED;
 
     private BluetoothGattCharacteristic mMenuCharacteristic;
@@ -45,13 +47,13 @@ public class BleClient extends Service {
             new BluetoothGattCallback() {
                 @Override
                 public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+                    Log.i("BleClient.mGattCall..", "onConnectionStateChange: Status = " + status);
                     try {
                         if (newState == BluetoothProfile.STATE_CONNECTED) {
                             mConnectionState = STATE_CONNECTED;
                             Log.i("BleClient.mGattCall..", "onConnectionStateChange: Connected to GATT server.");
                             Log.i("BleClient.mGattCall..", "onConnectionStateChange: Attempting to start service discovery");
-                            final Handler handler = new Handler();
-                            handler.postDelayed(new Runnable() {
+                            mHandler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
                                     mBluetoothGatt.discoverServices();
@@ -120,10 +122,9 @@ public class BleClient extends Service {
                 }
             };
 
-
-
     public BleClient(Activity context) {
         mAppContext = context;
+        mHandler = new Handler();
     }
 
     /*
