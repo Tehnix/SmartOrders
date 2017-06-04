@@ -23,7 +23,6 @@ public class OrderAdapter extends BaseAdapter{
     private DBConnector db;
     private List<OrderItemDB> orders;
     private Context context;
-    private Intent detailTable;
 
     private static LayoutInflater inflater=null;
 
@@ -35,13 +34,11 @@ public class OrderAdapter extends BaseAdapter{
 
         db = MainActivity.getDatabase();
         orders = db.getOrderItems();
-        detailTable = new Intent(this.context, DetailTableActivity.class);
     }
     @Override
     public int getCount() {
         // TODO Auto-generated method stub
-        //return tables.size();
-        return 0;
+        return orders.size();
     }
 
     @Override
@@ -78,8 +75,8 @@ public class OrderAdapter extends BaseAdapter{
         holder.menuItemName = (TextView) rowView.findViewById(R.id.orderMenuItemName);
         holder.quantity = (TextView) rowView.findViewById(R.id.orderQuantity);
 
-        holder.tableNumber.setText("Table: " + orders.get(position).getTableNumber());
-        holder.menuItemName.setText("Dish: " + orders.get(position).getMenuItem().getName());
+        holder.tableNumber.setText("Table: " + (orders.get(position).getTableNumber() + 1));
+        holder.menuItemName.setText(orders.get(position).getMenuItem().getName());
         holder.quantity.setText("Quantity: " + orders.get(position).getQuantity());
 
         rowView.setOnClickListener(new OnClickListener() {
@@ -91,6 +88,7 @@ public class OrderAdapter extends BaseAdapter{
                         switch (choice) {
                             case DialogInterface.BUTTON_POSITIVE:
                                 db.deleteOrderItem(orders.get(position));
+                                refreshOrders();
                                 break;
                             case DialogInterface.BUTTON_NEGATIVE:
                                 break;

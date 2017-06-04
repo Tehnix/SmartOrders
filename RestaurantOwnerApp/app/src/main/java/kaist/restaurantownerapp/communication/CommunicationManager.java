@@ -3,9 +3,6 @@ package kaist.restaurantownerapp.communication;
 
 import android.app.Activity;
 import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.util.Log;
 
 public class CommunicationManager {
@@ -144,6 +141,15 @@ public class CommunicationManager {
      */
     public boolean submitOrder(String order) {
         return mBleManager.submitOrder(order);
+    }
+
+    /*
+     * Force fetching the menu from the BLE GATT server again.
+     *
+     * @see BleManager.updateMenu
+     */
+    public boolean updateMenu() {
+        return mBleManager.updateMenu();
     }
 
     /*

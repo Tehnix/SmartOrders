@@ -57,5 +57,4 @@
             android:label="@string/title_activity_detail_menu"
             android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
-
 </manifest>

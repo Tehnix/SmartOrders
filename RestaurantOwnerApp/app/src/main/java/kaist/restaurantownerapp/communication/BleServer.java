@@ -156,6 +156,7 @@ public class BleServer {
             // Respond with the response to an order if it is a write request for that.
             if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
                 if (decodedValue.equals(BleManager.START_TRANSMISSION)) {
+                    Log.i("BleServer.onCh..Write..", "Starting to build order: " + decodedValue);
                     // Indicate that the server is ready for the next part of the response.
                     mBleGattServer.sendResponse(device,
                             requestId,
