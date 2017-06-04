@@ -33,6 +33,8 @@ public class BleServer {
 
     private RestaurantData mRestaurantData;
 
+    private int mStartIndex = 0;
+
     private final Charset UTF_8 = Charset.forName("UTF-8");
 
     private HashMap<String, BluetoothDevice> mConnectedDevices = new HashMap<>();
@@ -87,37 +89,34 @@ public class BleServer {
 
             // Respond with the menu if it is a read request for that.
             if (BleManager.UUID_SMARTORDER_MENU.equals(characteristic.getUuid())) {
-                Log.e("BleServer.onCha..Read..", "Respond with menu");
+                if (mStartIndex == 0) {
+                    Log.e("BleServer.onCha..Read..", "Respond with menu");
+                }
                 byte[] menuResponse = mRestaurantData.getMenu().getBytes(UTF_8);
                 byte[] response = new byte[20];
                 int responseIndex = 0;
-                int responseOffset = 0;
-                for (Byte menuResponseByte : menuResponse) {
-                    response[responseIndex] = menuResponseByte;
-                    // Send a response every 20 bytes.
-                    if (responseIndex >= 19) {
-                        mBleGattServer.sendResponse(device,
-                                requestId,
-                                BluetoothGatt.GATT_SUCCESS,
-                                responseOffset,
-                                response);
-                        responseIndex = 0;
-                        responseOffset++;
-                    }
-                    responseIndex++;
-                }
-                if (responseIndex != 0) {
+                if (mStartIndex == (menuResponse.length - 1)) {
                     mBleGattServer.sendResponse(device,
                             requestId,
                             BluetoothGatt.GATT_SUCCESS,
-                            responseOffset,
-                            response);
+                            0,
+                            BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
+                } else {
+                    // Only go through one loop for each characteristic read request.
+                    for (; mStartIndex < menuResponse.length; mStartIndex++) {
+                        response[responseIndex] = menuResponse[mStartIndex];
+                        // Send a response every 20 bytes.
+                        if (responseIndex >= 19 || mStartIndex == (menuResponse.length - 1)) {
+                            mBleGattServer.sendResponse(device,
+                                    requestId,
+                                    BluetoothGatt.GATT_SUCCESS,
+                                    0,
+                                    response);
+                            break;
+                        }
+                        responseIndex++;
+                    }
                 }
-                mBleGattServer.sendResponse(device,
-                        requestId,
-                        BluetoothGatt.GATT_SUCCESS,
-                        responseOffset++,
-                        BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
             } else {
                 mBleGattServer.sendResponse(device,
                         requestId,
