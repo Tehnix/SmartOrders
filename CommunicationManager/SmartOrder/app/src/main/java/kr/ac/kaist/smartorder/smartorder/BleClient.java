@@ -148,6 +148,8 @@ public class BleClient extends Service {
                                 if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
                                     Log.i("BleClient.mGat..write", "onCharacteristicWrite: Sending next part of order!");
                                     broadcastUpdate(BleManager.ACTION_DATA_AVAILABLE, characteristic);
+                                } else {
+                                    Log.i("BleClient.mGat..write", "onCharacteristicWrite: Order has been sent!");
                                 }
                             }
                         }  else {
@@ -224,7 +226,7 @@ public class BleClient extends Service {
             }
         } else if (BleManager.UUID_SMARTORDER_DATA.equals(characteristic.getUuid())) {
             final String data = new String(characteristic.getValue(), UTF_8);
-            if (data.equals(BleManager.CONTINUE_TRANSMISSION) || data.equals(BleManager.START_TRANSMISSION)) {
+            if (!data.equals(BleManager.END_OF_TRANSMISSION)) {
                 // Continue sending the order data.
                 Log.d("BleClient.broadca..", String.format("Received data: %s", data));
                 Log.d("BleClient.broadca..", "Continuing order transmission");
@@ -232,12 +234,13 @@ public class BleClient extends Service {
                 byte[] orderData = mOrderData.getBytes(UTF_8);
                 byte[] request = new byte[20];
                 int requestIndex = 0;
+                // If the order has been written, send the END_OF_TRANSMISSION, else continue sending.
                 if (mWriteChrcIndex >= orderData.length) {
                     mDataCharacteristic.setValue(BleManager.END_OF_TRANSMISSION.getBytes(UTF_8));
                     mBluetoothGatt.writeCharacteristic(mDataCharacteristic);
                     mWriteChrcIndex = 0;
                 } else {
-                    // Only go through one loop for each characteristic read request.
+                    // Only go through one loop for each characteristic write request.
                     for (; mWriteChrcIndex < orderData.length; mWriteChrcIndex++) {
                         request[requestIndex] = orderData[mWriteChrcIndex];
                         // Send a response every 20 bytes.
