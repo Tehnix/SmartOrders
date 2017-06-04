@@ -12,6 +12,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
@@ -84,6 +85,7 @@ public class BleManager {
                         Intent gattServiceIntent = new Intent(mAppContext, BleClient.class);
                         mAppContext.bindService(gattServiceIntent, mBleServiceConnection, mAppContext.BIND_AUTO_CREATE);
                         Log.i("BleManager.mBleScanCa..", "Connecting to device");
+                        mHandler.getLooper().prepare();
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
@@ -256,17 +258,45 @@ public class BleManager {
      * Start a BLE GATT server that clients can connect to. Note that the server requires
      * at least Android SDK version 21.
      */
-    public boolean startBleServer(RestaurantData restaurantData) {
+    public boolean startBleServer(final RestaurantData restaurantData) {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             if (!checkBleEnabled()) {
                 return false;
             }
             Log.d("BleManager.startBleSe..", "Starting BLE GATT server");
-            mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, restaurantData);
+            new StartBleServer(restaurantData) {
+                @Override
+                protected void onPostExecute(BleServer bleServer) {
+                    super.onPostExecute(bleServer);
+                    mBleServer = bleServer;
+                }
+            }.execute();
+
+//            mHandler.post(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, restaurantData);
+//                }
+//            });
             return true;
         } else {
             Log.e("BleManager.startBleSe..", "SDK version is too low to start the BLE GATT server!");
         }
         return false;
+    }
+
+    private class StartBleServer extends AsyncTask<Void, Void, BleServer> {
+
+        private RestaurantData mRestaurantData;
+
+        public StartBleServer(RestaurantData restaurantData) {
+            mRestaurantData = restaurantData;
+        }
+
+        @Override
+        protected BleServer doInBackground(Void... params) {
+            mBleServer = new BleServer(mAppContext, mBleManager, mBleAdapter, mRestaurantData);
+            return mBleServer;
+        }
     }
 }

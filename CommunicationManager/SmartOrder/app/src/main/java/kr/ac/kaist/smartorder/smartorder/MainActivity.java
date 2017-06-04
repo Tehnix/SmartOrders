@@ -195,6 +195,14 @@ public class MainActivity extends AppCompatActivity {
         public void handleMenu(String menu) {
             Log.i("DeliciousRestaurantData", "Received menu: " + menu);
         }
+
+        public void handleOrderResponse(boolean success, String msg) {
+            if (success) {
+                Log.i("DeliciousRestaurantData", "Order was placed!: " + msg);
+            } else {
+                Log.i("DeliciousRestaurantData", "Order was not placed!: " + msg);
+            }
+        }
     }
 
     /*
