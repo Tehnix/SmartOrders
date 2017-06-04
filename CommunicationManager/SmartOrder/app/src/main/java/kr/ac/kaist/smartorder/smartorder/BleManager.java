@@ -40,6 +40,8 @@ public class BleManager {
 
     private BleServer mBleServer;
 
+    private ClientData mClientData;
+
     private Handler mScanHandler = new Handler();
 
     private String mBleAddress = null;
@@ -105,7 +107,12 @@ public class BleManager {
                 // Show all the supported services and characteristics on the user interface.
                 Log.i("BleManager.mGattUpdat..", mBleClient.getSupportedGattServices().toString());
             } else if (BleManager.ACTION_DATA_AVAILABLE.equals(action)) {
-                Log.i("BleManager.mGattUpdat..", intent.getStringExtra(BleManager.EXTRA_DATA));
+                Log.i("BleManager.mGattUpdat..", "Got data: " + intent.getStringExtra(BleManager.EXTRA_DATA));
+                if (BleManager.UUID_SMARTORDER_MENU.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleMenu(intent.getStringExtra(BleManager.EXTRA_DATA));
+                } else if (BleManager.UUID_SMARTORDER_DATA.toString().equals(intent.getStringExtra("uuid"))) {
+                    mClientData.handleOrderResponse(intent.getStringExtra(BleManager.EXTRA_DATA));
+                }
             }
         }
     };
@@ -155,6 +162,7 @@ public class BleManager {
         if (!checkBleEnabled()) {
             return false;
         }
+        mClientData = clientData;
         // To scan for devices we also need to request coarse location permissions.
         if (ContextCompat.checkSelfPermission(mAppContext.getApplicationContext(),
                 Manifest.permission.ACCESS_COARSE_LOCATION)
