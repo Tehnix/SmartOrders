@@ -10,5 +10,6 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Category"
-        android:textSize="17sp" />
+        android:textSize="17sp"
+        android:paddingLeft="25dp"/>
 </LinearLayout>

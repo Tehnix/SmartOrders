@@ -207,7 +207,11 @@ public class BleManager {
         if (mIsScanning) {
             Log.d("BleManager.scanForDev..", "Stopping BLE scan");
             mIsScanning = false;
-            mBleAdapter.stopLeScan(mBleScanCallback);
+            try {
+                mBleAdapter.stopLeScan(mBleScanCallback);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -247,7 +251,11 @@ public class BleManager {
      */
     public void destroyService() {
         if (mBleServiceConnection != null) {
-            mAppContext.unbindService(mBleServiceConnection);
+            try {
+                mAppContext.unbindService(mBleServiceConnection);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -256,7 +264,11 @@ public class BleManager {
      */
     public void disconnectFromServer() {
         if (mBleClient != null) {
-            mBleClient.disconnect();
+            try {
+                mBleClient.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 

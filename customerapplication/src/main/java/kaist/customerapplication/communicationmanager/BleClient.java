@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.lang.reflect.Method;
 import java.nio.charset.Charset;
 import java.util.List;
 
@@ -179,7 +180,9 @@ public class BleClient extends Service {
      * Internal function, mostly used to reconnect in case of connection loss.
      */
     private BluetoothGatt connectToDevice() {
-        return mDevice.connectGatt(mContext, true, mGattCallback);
+        mBluetoothGatt = mDevice.connectGatt(mContext, true, mGattCallback);
+        refreshDeviceCache(mBluetoothGatt);
+        return mBluetoothGatt;
     }
 
     public void disconnect() {
@@ -380,5 +383,20 @@ public class BleClient extends Service {
         intentFilter.addAction(BleManager.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BleManager.ACTION_DATA_AVAILABLE);
         return intentFilter;
+    }
+
+    private boolean refreshDeviceCache(BluetoothGatt gatt){
+        try {
+            BluetoothGatt localBluetoothGatt = gatt;
+            Method localMethod = localBluetoothGatt.getClass().getMethod("refresh", new Class[0]);
+            if (localMethod != null) {
+                boolean bool = ((Boolean) localMethod.invoke(localBluetoothGatt, new Object[0])).booleanValue();
+                return bool;
+            }
+        }
+        catch (Exception localException) {
+            Log.e("BleClient.refreshDevi..", "An exception occured while refreshing device");
+        }
+        return false;
     }
 }

@@ -59,8 +59,10 @@ public class NfcManager {
      * Check if BLE is enabled, else request it be enabled.
      */
     private boolean checkNfcEnabled() {
-        if (mNfcAdapter == null || !mNfcAdapter.isEnabled()) {
-            Intent enableNfcIntent = new Intent(Settings.ACTION_WIRELESS_SETTINGS);
+        if (mNfcAdapter == null) {
+            return false;
+        } else if (!mNfcAdapter.isEnabled()) {
+            Intent enableNfcIntent = new Intent(Settings.ACTION_NFC_SETTINGS);
             mAppContext.startActivityForResult(enableNfcIntent, REQUEST_ENABLE_NFC);
             return false;
         }
