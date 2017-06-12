@@ -118,14 +118,14 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         navigationView.setCheckedItem(R.id.nav_orders);
 
-        vf = (ViewFlipper)findViewById(R.id.vf);
-        vf.setDisplayedChild(0);
-
+        initOrderList();
         initContentTable();
         initContentSettings();
         initMenuList();
-        initOrderList();
         initCommunicationManager();
+
+        vf = (ViewFlipper)findViewById(R.id.vf);
+        vf.setDisplayedChild(0);
     }
 
     @Override
@@ -266,34 +266,39 @@ public class MainActivity extends AppCompatActivity
 
         List<OrderItem> orderList = order.getOrderItems();
 
-        int tableNumber = order.getTableNumber();
+        final int tableNumber = order.getTableNumber();
 
         for (OrderItem i : orderList) {
             db.addOrder(i);
         }
 
-        Toast.makeText(getApplicationContext(), "New Order!", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(getApplicationContext(), "New Order!", Toast.LENGTH_SHORT).show();
 
-        updateOrders();
-
-        DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+        mMainActivity.runOnUiThread(new Runnable() {
             @Override
-            public void onClick(DialogInterface dialog, int choice) {
-                switch (choice) {
-                    case DialogInterface.BUTTON_POSITIVE:
-                        currentContent = ContentState.ORDERS;
-                        fab.setVisibility(View.VISIBLE);
-                        vf.setDisplayedChild(0);
-                        break;
-                    case DialogInterface.BUTTON_NEGATIVE:
-                        break;
-                }
+            public void run() {
+                mMainActivity.updateOrders();
+
+                DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int choice) {
+                        switch (choice) {
+                            case DialogInterface.BUTTON_POSITIVE:
+                                currentContent = ContentState.ORDERS;
+                                fab.setVisibility(View.VISIBLE);
+                                vf.setDisplayedChild(0);
+                                break;
+                            case DialogInterface.BUTTON_NEGATIVE:
+                                break;
+                        }
+                    }
+                };
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setMessage("New Order from Table " + tableNumber)
+                        .setPositiveButton("Show", dialogClickListener)
+                        .setNegativeButton("Cancle", dialogClickListener).show();
             }
-        };
-        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setMessage("New Order from Table " + tableNumber)
-                .setPositiveButton("Show", dialogClickListener)
-                .setNegativeButton("Cancle", dialogClickListener).show();
+        });
         return "Order accepted";
     }
 
